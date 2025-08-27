@@ -1,10 +1,11 @@
-"use client"
-
 import { SignedOut, SignIn, SignInButton, SignOutButton, UserButton } from "@clerk/clerk-react"
 import { Brain, Users, Zap, BookOpen, GraduationCap, ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+
 
 export default function Home() {
+  const navigate = useNavigate();
   const [animationPhase, setAnimationPhase] = useState(0)
 
   const getBlinkColor = () => {
@@ -25,6 +26,9 @@ export default function Home() {
 
     return () => clearInterval(interval)
   }, [])
+  const handleCreate=()=>{
+    navigate('/createQuiz')
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -179,7 +183,7 @@ export default function Home() {
                   Create
                 </h3>
                 <p className="text-gray-300 mb-6">Design intelligent quizzes with AI assistance</p>
-                <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center">
+                <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center" onClick={handleCreate}>
                   Start Creating
                   <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
                 </button>
