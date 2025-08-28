@@ -35,7 +35,8 @@ export default function CreateQuiz() {
       });
       const json = await res.json();
       const quizContent = json.quizContent || "Failed to get quiz.";
-      navigate('/generatedQuiz',{state:{quizContent}})
+      const quizId = json.quizId
+      navigate('/generatedQuiz',{state:{quizContent,quizId}})
     } catch (err) {
       console.error(err);
       setQuizResult("An error occurred.");

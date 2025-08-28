@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import './db.js'
+import Quiz from './models/quiz.js';
 
 dotenv.config();
 const app = express();
@@ -32,7 +33,10 @@ Write answers to all questions at the bottom with 1-2 line explanation.`;
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
-    res.json({ quizContent: response.text });
+    const qContent = new Quiz({content:response.text})
+    await qContent.save();
+    console.log('Here is the quiz ID:', qContent._id);
+    res.json({ quizContent: response.text , quizId: qContent._id});
   } catch (err) {
     console.error('Error generating quiz:', err);
     res.status(500).json({ error: 'AI prompt failed' });
