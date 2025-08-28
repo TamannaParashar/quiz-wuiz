@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import db from './db'
+import './db.js'
 
 dotenv.config();
 const app = express();
@@ -16,7 +16,16 @@ app.post('/api/generate-quiz', async (req, res) => {
   const { topic, ques, level, reference} = req.body;
 
   const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
-Reference material: ${reference}`;
+Reference material: ${reference}
+Each question should have exactly 4 options, and only one correct answer.
+
+Format the options as a bulleted list using Markdown, like:
+
+- A) Option 1  
+- B) Option 2  
+- C) Option 3  
+- D) Option 4
+Write answers to all questions at the bottom with 1-2 line explanation.`;
   
   try {
     const response = await ai.models.generateContent({

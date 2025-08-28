@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 const url = "mongodb://localhost:27017/quiz-wuiz";
 
 mongoose.connect(url,{
@@ -8,10 +8,10 @@ mongoose.connect(url,{
 
 const db  = mongoose.connection
 
-db.on('connect',()=>{
+db.on('connected',()=>{
     console.log("Connected to mongoose");
 });
 
-db.on('disconnect',()=>{
+db.on('disconnected',()=>{
     console.log("Disconnected from mongoose");
 });
