@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import './db.js'
 import Quiz from './models/quiz.js';
+import quizResponse from './models/quizResponse.js';
 
 dotenv.config();
 const app = express();
@@ -26,7 +27,8 @@ Format the options as a bulleted list using Markdown, like:
 - Option B) Option 2  
 - Option C) Option 3  
 - Option D) Option 4
-Write answers to all questions at the bottom with 1-2 line explanation.`;
+Write answers to all questions at the bottom like (A) or (B) or (C) or (D).`;
+//(Just the option name like (A) or (B) or (C) or (D))
   
   try {
     const response = await ai.models.generateContent({
@@ -51,7 +53,7 @@ app.get('/api/getTest/:id',async(req,res)=>{
     try{
     const data = await Quiz.findById(req.params.id);
     const countQuestions = (ansKey) => {
-      const questionRegex = /\*\*Question \d+/g; // Match pattern like "**Question 1"
+      const questionRegex = /\((.*?)\)/g;
       return (ansKey.match(questionRegex) || []).length;
     };
     
@@ -62,6 +64,14 @@ app.get('/api/getTest/:id',async(req,res)=>{
         console.log("Quiz can't be attempted",err)
     }
 });
+
+app.post('/api/addResponse',async(req,res)=>{
+    const {name,email,answers,score} = req.body;
+    const resp = new quizResponse({name,email,answers,score});
+    await resp.save();
+    console.log('Response saved successfully');
+    res.json({message:'saved'})
+})
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
