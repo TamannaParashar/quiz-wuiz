@@ -22,10 +22,10 @@ Each question should have exactly 4 options, and only one correct answer.
 
 Format the options as a bulleted list using Markdown, like:
 
-- A) Option 1  
-- B) Option 2  
-- C) Option 3  
-- D) Option 4
+- Option A) Option 1  
+- Option B) Option 2  
+- Option C) Option 3  
+- Option D) Option 4
 Write answers to all questions at the bottom with 1-2 line explanation.`;
   
   try {
@@ -33,7 +33,11 @@ Write answers to all questions at the bottom with 1-2 line explanation.`;
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
-    const qContent = new Quiz({content:response.text})
+    const quiz = response.text;
+    const arr = quiz.split(/(?=Answers:)/i);
+    const ques = arr[0]?.trim()||"";
+    const ans = arr[1]?.trim()||"";
+    const qContent = new Quiz({content:ques,ansKey:ans})
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
     res.json({ quizContent: response.text , quizId: qContent._id});
@@ -41,6 +45,22 @@ Write answers to all questions at the bottom with 1-2 line explanation.`;
     console.error('Error generating quiz:', err);
     res.status(500).json({ error: 'AI prompt failed' });
   }
+});
+
+app.get('/api/getTest/:id',async(req,res)=>{
+    try{
+    const data = await Quiz.findById(req.params.id);
+    const countQuestions = (ansKey) => {
+      const questionRegex = /\*\*Question \d+/g; // Match pattern like "**Question 1"
+      return (ansKey.match(questionRegex) || []).length;
+    };
+    
+    const answerCount = countQuestions(data.ansKey);
+
+    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount})
+    }catch(err){
+        console.log("Quiz can't be attempted",err)
+    }
 });
 
 const PORT = process.env.PORT || 5000;

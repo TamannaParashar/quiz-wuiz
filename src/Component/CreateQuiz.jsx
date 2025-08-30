@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 export default function CreateQuiz() {
   const [isAnimated, setIsAnimated] = useState(false);
-  const [quizResult, setQuizResult] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function CreateQuiz() {
       navigate('/generatedQuiz',{state:{quizContent,quizId}})
     } catch (err) {
       console.error(err);
-      setQuizResult("An error occurred.");
     }
 
     setLoading(false);
@@ -115,13 +113,6 @@ export default function CreateQuiz() {
           </form>
         </div>
       </div>
-
-      {quizResult && (
-        <div className="absolute bottom-0 left-0 right-0 max-h-96 overflow-y-auto bg-gray-800 text-white p-6">
-          <h2 className="text-xl font-semibold">Generated Quiz:</h2>
-          <pre className="whitespace-pre-wrap">{quizResult}</pre>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import ReactMarkDown from 'react-markdown'
-import { Check } from 'lucide-react';
 
 export default function GeneratedQuiz() {
     const location = useLocation();
@@ -37,7 +36,7 @@ export default function GeneratedQuiz() {
         <p>{tick}</p>
       </div>
       <div className='text-white m-5 flex'>
-      <button className='rounded-lg p-3 bg-gradient-to-r from-emarald-500 to-blue-500' onClick={()=>navigate('/createQuiz')}>Go Back</button>
+      <button className='rounded-lg p-3 bg-gradient-to-r from-emarald-500 to-blue-500' onClick={()=>navigate('/')}>Go Back</button>
       </div>
       </div>
     </div>

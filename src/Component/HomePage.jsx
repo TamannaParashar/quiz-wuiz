@@ -29,7 +29,9 @@ export default function Home() {
   const handleCreate=()=>{
     navigate('/createQuiz')
   }
-
+  const handleAttend=()=>{
+    navigate('/attendQuiz')
+  }
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -206,8 +208,8 @@ export default function Home() {
                   Attend
                 </h3>
                 <p className="text-gray-300 mb-6">Join interactive learning sessions</p>
-                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center">
-                  Join Session
+                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center" onClick={handleAttend}>
+                  Attend Quiz
                   <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
                 </button>
               </div>
