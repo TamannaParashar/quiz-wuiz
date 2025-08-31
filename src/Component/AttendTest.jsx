@@ -1,4 +1,3 @@
-//http://localhost:5173/quiz-test/68b2d131c75319bf17e3cce1
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@clerk/clerk-react';
@@ -13,6 +12,7 @@ export default function AttendTest() {
   const [answers,setAnswers] = useState({});
   const [origAns,setOrgAns] = useState([]);
   const [score, setScore] = useState(0);
+  const [res,setRes] = useState(false)
 
 //extract options from ansKey (the one inside parenthesis) as they are stored like, Answers: (A) (B) (A)
   const parseAnsKey = (ansKey) => {
@@ -65,8 +65,7 @@ export default function AttendTest() {
       });
 
       await res.json();
-      alert(`Your score: ${userScore}/${answerCount}`);
-      navigate('/');
+      setRes(true);
     } catch (err) {
       console.log('Error submitting response:', err);
     }
@@ -108,6 +107,18 @@ export default function AttendTest() {
           Submit
         </button>
      }
+     {res && 
+     <div className='fixed inset-0 z-50 backdrop-blur-sm flex justify-center items-center'>
+        <div className='rounded-lg shadow-lg w-[40%] h-[30%] max-w-2xl relative'>
+        <img src="celebrate.gif" alt="" className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none' />
+        <p className='text-green-600 text-2xl text-center align-center bg-white m-5 realtive'>Congratulations! You have scored {score} out of {answerCount} in the test. Leaderboard will be updated after timeout.</p>
+        <div>
+            <button className='bg-green-600 text-black text-2xl flex justify-center items-center rounded-lg p-3' onClick={()=>{navigate('/')}}>Done</button>
+        </div>
+        </div>
+     </div>
+     }
     </div>
   );
 }
+//http://localhost:5173/quiz-test/68b494d7496abf8c696fd74f

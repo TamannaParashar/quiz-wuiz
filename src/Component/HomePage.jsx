@@ -1,7 +1,7 @@
 import { SignedOut, SignIn, SignInButton, SignOutButton, UserButton } from "@clerk/clerk-react"
-import { Brain, Users, Zap, BookOpen, GraduationCap, ChevronRight } from "lucide-react"
+import { Brain, Users, Zap, BookOpen, GraduationCap, ChevronRight, Github } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setAnimationPhase((prevPhase) => prevPhase + 1)
-    }, 800) // Faster color cycling for more dynamic effect
+    }, 800) 
 
     return () => clearInterval(interval)
   }, [])
@@ -54,7 +54,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* options here */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
@@ -81,11 +81,6 @@ export default function Home() {
         <div className="container mx-auto px-4 py-20 relative">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
             <div className="lg:w-1/2">
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <Zap className="w-4 h-4" />
-                AI-Powered Learning Platform
-              </div>
-
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 <span className="inline-block relative">
                   <span
@@ -126,7 +121,7 @@ export default function Home() {
             </div>
 
             <div className="relative lg:w-1/2 lg:pl-12">
-  {/* SVG Multicolor Border */}
+  
   <svg
     className="absolute inset-0 w-full h-full pointer-events-none"
     xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +147,7 @@ export default function Home() {
     />
   </svg>
 
-  {/* Actual Content */}
+  
   <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-xl p-6">
     <h3 className="text-lg font-semibold text-emerald-400 mb-4">Why This Platform?</h3>
     <div className="space-y-3 text-sm text-gray-300">
@@ -167,9 +162,9 @@ export default function Home() {
 
           </div>
 
-          {/* Main Action Buttons */}
+          
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-16">
-            {/* Create Button - Teacher */}
+            {/* Create Button */}
             <div className="group relative overflow-hidden border-2 border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 hover:shadow-xl hover:shadow-emerald-500/20 hover:-translate-y-2 hover:rotate-1 bg-gray-800/50 backdrop-blur-sm rounded-lg">
               <div
                 className="absolute inset-0 opacity-30 bg-cover bg-center group-hover:opacity-40 group-hover:scale-110 transition-all duration-700"
@@ -192,7 +187,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Attend Button - Student */}
+            {/* Attend Button */}
             <div className="group relative overflow-hidden border-2 border-blue-500/20 hover:border-blue-500/40 transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-2 hover:-rotate-1 bg-gray-800/50 backdrop-blur-sm rounded-lg">
               <div
                 className="absolute inset-0 opacity-30 bg-cover bg-center group-hover:opacity-40 group-hover:scale-110 transition-all duration-700"
@@ -283,6 +278,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <footer className="flex bg-gray-800 justify-around p-2 shadow-lg">
+        <div className="flex">
+        &copy; {new Date().getFullYear()} Tamanna Parashar <Link to="https://github.com/TamannaParashar"><Github/></Link>
+        </div>
+       All rights reserved 
+      </footer>
     </div>
   )
 }
