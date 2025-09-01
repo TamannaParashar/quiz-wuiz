@@ -15,7 +15,12 @@ const response = new mongoose.Schema({
     score:{
         type:Number,
         required:true
-    }
+    },
+    quizId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz',
+        required: true
+}
 })
 const quizResponse = mongoose.model("quizResponse",response);
 export default quizResponse

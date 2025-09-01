@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/generate-quiz', async (req, res) => {
-  const { topic, ques, level, reference} = req.body;
+  const { topic, ques, level, reference,time} = req.body;
 
   const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
 Reference material: ${reference}
@@ -39,7 +39,7 @@ Write answers to all questions at the bottom like (A) or (B) or (C) or (D).`;
     const arr = quiz.split(/(?=Answers:)/i);
     const ques = arr[0]?.trim()||"";
     const ans = arr[1]?.trim()||"";
-    const qContent = new Quiz({content:ques,ansKey:ans})
+    const qContent = new Quiz({content:ques,ansKey:ans,time:time})
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
     res.json({ quizContent: response.text , quizId: qContent._id});
@@ -59,18 +59,23 @@ app.get('/api/getTest/:id',async(req,res)=>{
     
     const answerCount = countQuestions(data.ansKey);
 
-    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount})
+    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount,time:data.time})
     }catch(err){
         console.log("Quiz can't be attempted",err)
     }
 });
 
 app.post('/api/addResponse',async(req,res)=>{
-    const {name,email,answers,score} = req.body;
-    const resp = new quizResponse({name,email,answers,score});
+    const {name,email,answers,score,quizId} = req.body;
+    const resp = new quizResponse({name,email,answers,score,quizId});
     await resp.save();
     console.log('Response saved successfully');
     res.json({message:'saved'})
+})
+
+app.get('/api/leaderboard/:quizId',async(req,res)=>{
+    const data = await quizResponse.find({quizId:req.params.quizId}).sort({score:-1}).limit(3).select('name score -_id');
+    res.json(data);
 })
 
 const PORT = process.env.PORT || 5000;

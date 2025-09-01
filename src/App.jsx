@@ -4,6 +4,7 @@ import CreateQuiz from './Component/CreateQuiz'
 import GeneratedQuiz from './Component/GeneratedQuiz'
 import Home from './Component/HomePage'
 import {Routes,Route } from 'react-router-dom'
+import LeaderBoard from './Component/LeaderBoard'
 function App() {
   return (
     <div> 

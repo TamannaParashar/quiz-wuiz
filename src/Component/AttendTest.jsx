@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,11 @@ export default function AttendTest() {
   const [origAns,setOrgAns] = useState([]);
   const [score, setScore] = useState(0);
   const [res,setRes] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [quizId, setQuizId] = useState('');
+  const [top1,setTop1] = useState("")
+  const [top2,setTop2] = useState("")
+  const [top3,setTop3] = useState("")
 
 //extract options from ansKey (the one inside parenthesis) as they are stored like, Answers: (A) (B) (A)
   const parseAnsKey = (ansKey) => {
@@ -27,6 +32,7 @@ export default function AttendTest() {
     if (!url) return setError("Please paste a valid link.");
 
     const quizId = url.split('/').pop();
+    setQuizId(quizId);
 
     try {
       const res = await fetch(`/api/getTest/${quizId}`);
@@ -35,10 +41,38 @@ export default function AttendTest() {
       setAnswerCount(data.questionCount);
       const parsedAns = parseAnsKey(data.ansKey);
       setOrgAns(parsedAns);
+      setTimeLeft(data.time * 60);
     } catch (err) {
       console.log('Something went wrong',err);
     }
     setSubmit(true)
+  };
+  const leaderboard=async()=>{
+    const res = await fetch(`/api/leaderboard/${quizId}`);
+    const data = await res.json();
+    setTop1(data[0]?.name || '')
+    setTop2(data[1]?.name || '')
+    setTop3(data[2]?.name || '')
+  }
+useEffect(() => {
+    if (timeLeft <= 0) {
+      if (submit && !res) {
+        handleResponse();
+      }
+      return;
+    }
+    const timerId = setInterval(() => {
+      setTimeLeft((time) => time - 1);
+    }, 1000);
+
+    return () => clearInterval(timerId); // cleanup on unmount or timeLeft change
+  }, [timeLeft, submit, res]);
+
+  // Format seconds to MM:SS
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   const handleResponse= async()=>{
@@ -53,7 +87,8 @@ export default function AttendTest() {
         name:user.firstName,
         email:user.primaryEmailAddress.emailAddress,
         answers:answers,
-        score:userScore
+        score:userScore,
+        quizId: quizId
     };
     try {
       const res = await fetch('/api/addResponse', {
@@ -80,6 +115,11 @@ export default function AttendTest() {
 
   return (
     <div className='bg-gray-800 min-h-screen p-4 text-white'>
+        {submit && !res && (
+        <div className="text-center text-xl font-bold mb-4">
+          Time Left: {formatTime(timeLeft)}
+        </div>
+      )}
       <div className='flex justify-center'>
         <input type='url' id='link' placeholder='Paste quiz link here' className='p-3 rounded-lg bg-white text-black m-4 w-full max-w-2xl' />
       </div>
@@ -110,10 +150,19 @@ export default function AttendTest() {
      {res && 
      <div className='fixed inset-0 z-50 backdrop-blur-sm flex justify-center items-center'>
         <div className='rounded-lg shadow-lg w-[40%] h-[30%] max-w-2xl relative'>
+        {/* pointer-events-none so that done can work or else absolute will cover all the elements and pointer click won't work */}
         <img src="celebrate.gif" alt="" className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none' />
         <p className='text-green-600 text-2xl text-center align-center bg-white m-5 realtive'>Congratulations! You have scored {score} out of {answerCount} in the test. Leaderboard will be updated after timeout.</p>
+        <div className="flex justify-around">
         <div>
             <button className='bg-green-600 text-black text-2xl flex justify-center items-center rounded-lg p-3' onClick={()=>{navigate('/')}}>Done</button>
+        </div>
+        <div>
+        <button className='bg-green-600 text-black text-2xl flex justify-center items-center rounded-lg p-3' onClick={leaderboard}>Leaderboard</button>
+        {top1 && <h1>🥇 {top1}</h1>}
+        {top2 && <h1>🥈 {top2}</h1>}
+        {top3 && <h1>🥉 {top3}</h1>}
+        </div>
         </div>
         </div>
      </div>
@@ -121,4 +170,3 @@ export default function AttendTest() {
     </div>
   );
 }
-//http://localhost:5173/quiz-test/68b494d7496abf8c696fd74f
