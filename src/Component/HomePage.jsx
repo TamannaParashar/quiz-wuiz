@@ -36,13 +36,9 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
       <header className="border-b border-gray-800 backdrop-blur-sm bg-gray-900/80 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">Quiz-Wuiz</span>
-          </div>
+        <div className="container mx-auto flex items-center justify-between">
+            <img src="ai.png" alt="" className="h-18 relative" />        
+            <span className="text-xl font-bold text-white absolute" style={{textShadow:'2px 2px 2px black'}}>Quiz-Wuiz</span>
           <div className="flex justify-end">
             <div className="mr-5">
           <SignedOut>
@@ -218,9 +214,8 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Why Choose{" "}
               <span className="inline-block relative">
-                {["Q", "u", "i", "z", "-", "W", "u", "i", "z"].map((letter, index) => (
+                {["T", "a", "k", "e", "A", "w", "a", "y", "s"].map((letter, index) => (
                   <span
                     key={index}
                     className="inline-block transition-all duration-300 hover:text-emerald-400 cursor-default hover:scale-125 hover:-translate-y-1"
@@ -240,9 +235,6 @@ export default function Home() {
               </span>
               ?
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Experience the perfect blend of AI technology and educational excellence
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
