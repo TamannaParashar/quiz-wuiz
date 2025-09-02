@@ -1,4 +1,6 @@
 import express from 'express';
+import multer from 'multer';
+import PdfParse from 'pdf-parse/lib/pdf-parse.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
@@ -13,12 +15,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const upload = multer({ storage: multer.memoryStorage() });
 
-app.post('/api/generate-quiz', async (req, res) => {
+app.post('/api/generate-quiz',upload.single('pdf'), async (req, res) => {
   const { topic, ques, level, reference,time} = req.body;
 
+  let fullReference = reference || "";
+
+  if (req.file) {
+    try {
+      const parsed = await PdfParse(req.file.buffer);
+      fullReference += "\n\n" + parsed.text;
+    } catch (err) {
+      console.error('PDF parsing failed:', err);
+    }
+  }
+
   const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
-Reference material: ${reference}
+Reference material: ${fullReference}
 Each question should have exactly 4 options, and only one correct answer.
 
 Format the options as a bulleted list using Markdown, like:

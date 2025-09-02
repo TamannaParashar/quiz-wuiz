@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 export default function CreateQuiz() {
   const [isAnimated, setIsAnimated] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [pdf,setPdf] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsAnimated(true);
@@ -18,19 +18,19 @@ export default function CreateQuiz() {
     e.preventDefault();
     setLoading(true);
 
-    const data = {
-      topic: e.target.topic.value,
-      ques: e.target.ques.value,
-      level: e.target.level.value,
-      reference: e.target.reference.value,
-      time: e.target.time.value,
-    };
-
+    const formData = new FormData();
+      formData.append('topic',e.target.topic.value);
+      formData.append('ques',e.target.ques.value);
+      formData.append('level',e.target.level.value);
+      formData.append('reference',e.target.reference.value);
+      formData.append('time',e.target.time.value);
+      if(pdf){
+        formData.append('pdf',pdf);
+      }
     try {
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body:formData,
       });
       const json = await res.json();
       const quizContent = json.quizContent || "Failed to get quiz.";
@@ -71,13 +71,13 @@ export default function CreateQuiz() {
               {/* Topic Input */}
               <div>
                 <label htmlFor="topic" className="block text-sm font-medium text-gray-300 mb-2">Topic</label>
-                <input type="text" name="topic" id="topic" placeholder="Enter quiz topic..." className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
+                <input type="text" name="topic" id="topic" placeholder="Enter quiz topic..." className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
               {/* Number of Questions */}
               <div>
                 <label htmlFor="ques" className="block text-sm font-medium text-gray-300 mb-2">Number of Questions</label>
-                <input type="number" name="ques" id="ques" placeholder="10" min="1" max="50" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
+                <input type="number" name="ques" id="ques" placeholder="10" min="1" max="50" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
               {/* Difficulty Level */}
@@ -95,14 +95,16 @@ export default function CreateQuiz() {
 
               {/* Reference Material */}
               <div>
-                <label htmlFor="reference" className="block text-sm font-medium text-gray-300 mb-2">Reference Material (Optional)</label>
-                <input type="text" name="reference" id="reference" placeholder="Add reference links or materials..." className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                <label htmlFor="reference" className="block text-sm font-medium text-gray-300 mb-2">Reference Material</label>
+                <input type="text" name="reference" id="referenceText" placeholder="Add reference links or materials..." className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                <p className="m-2 text-white">PDF?<input type="file" name="reference" id="referencePdf" onChange={(e) => setPdf(e.target.files[0])} className="text-white" /></p>
+                {pdf && <p className="text-green-500">Pdf:{pdf.name}</p>}
               </div>
 
               {/* Time Limit */}
               <div>
                 <label htmlFor="time" className="block text-sm font-medium text-gray-300 mb-2">Time Limit (minutes)</label>
-                <input type="number" name="time" id="time" placeholder="30" min="1" max="180" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
+                <input type="number" name="time" id="time" placeholder="30" min="1" max="180" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
               {/* Create Button */}

@@ -10,7 +10,9 @@ function App() {
   return (
     <div> 
         <Routes>
+          {/* public route */}
           <Route path='/' element={<Home/>}></Route>
+          {/* private routes */}
           <Route path='/createQuiz' element={<><SignedIn><CreateQuiz /></SignedIn><SignedOut><RedirectToSignIn /></SignedOut>
             </>}></Route>
           <Route path='/generatedQuiz' element={<GeneratedQuiz/>}></Route>
