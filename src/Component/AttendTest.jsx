@@ -18,7 +18,7 @@ export default function AttendTest() {
   const [top1,setTop1] = useState("")
   const [top2,setTop2] = useState("")
   const [top3,setTop3] = useState("")
-
+  const [leader,showLeader] = useState(false);
 //extract options from ansKey (the one inside parenthesis) as they are stored like, Answers: (A) (B) (A)
   const parseAnsKey = (ansKey) => {
     const match = ansKey.match(/\((.*?)\)/g);
@@ -53,6 +53,8 @@ export default function AttendTest() {
     setTop1(data[0]?.name || '')
     setTop2(data[1]?.name || '')
     setTop3(data[2]?.name || '')
+    setRes(false);
+    showLeader(true);
   }
 useEffect(() => {
     if (timeLeft <= 0) {
@@ -152,21 +154,29 @@ useEffect(() => {
         <div className='rounded-lg shadow-lg w-[40%] h-[30%] max-w-2xl relative'>
         {/* pointer-events-none so that done can work or else absolute will cover all the elements and pointer click won't work */}
         <img src="celebrate.gif" alt="" className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none' />
-        <p className='text-green-600 text-2xl text-center align-center bg-white m-5 realtive'>Congratulations! You have scored {score} out of {answerCount} in the test. Leaderboard will be updated after timeout.</p>
+        <p className='text-green-600 text-2xl text-center align-center bg-white m-5 realtive'>Congratulations! You have scored {score} out of {answerCount} in the test. You can check the current leaderboard.</p>
         <div className="flex justify-around">
         <div>
             <button className='bg-green-600 text-black text-2xl flex justify-center items-center rounded-lg p-3' onClick={()=>{navigate('/')}}>Done</button>
         </div>
         <div>
         <button className='bg-green-600 text-black text-2xl flex justify-center items-center rounded-lg p-3' onClick={leaderboard}>Leaderboard</button>
-        {top1 && <h1>🥇 {top1}</h1>}
-        {top2 && <h1>🥈 {top2}</h1>}
-        {top3 && <h1>🥉 {top3}</h1>}
         </div>
         </div>
         </div>
      </div>
      }
+     {leader && <div className='fixed inset-0 z-50 backdrop-blur-sm flex justify-center items-center'>
+          <div className='bg-white rounded-lg px-14 py-3 shadow-lg'>
+            <h1 className='text-center text-black text-4xl font-bold m-5'>Top Scorers</h1>
+        {top1 && <h1 className='text-green-500 text-2xl text-center'>🥇 {top1}</h1>}
+        <div className="flex justify-evenly m-5">
+        {top2 && <h1 className='text-green-500 text-2xl'>🥈 {top2}</h1>}
+        {top3 && <h1 className='text-green-500 text-2xl'>🥉 {top3}</h1>}
+        </div>
+        <button className='text-red-700 float-left cursor-pointer' onClick={()=>{setRes(true);showLeader(false);}}>Close</button>
+        </div>
+        </div>}
     </div>
   );
 }
