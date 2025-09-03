@@ -15,12 +15,14 @@ export default function AttendTest() {
   const [res,setRes] = useState(false)
   const [timeLeft, setTimeLeft] = useState(0);
   const [quizId, setQuizId] = useState('');
-  const [top1,setTop1] = useState("")
-  const [top2,setTop2] = useState("")
-  const [top3,setTop3] = useState("")
+  const [top1,setTop1] = useState({})
+  const [top2,setTop2] = useState({})
+  const [top3,setTop3] = useState({})
   const [leader,showLeader] = useState(false);
+
 //extract options from ansKey (the one inside parenthesis) as they are stored like, Answers: (A) (B) (A)
-  const parseAnsKey = (ansKey) => {
+  
+const parseAnsKey = (ansKey) => {
     const match = ansKey.match(/\((.*?)\)/g);
     return match ? match.map(item => item.replace(/[()]/g, '')) : [];
   };
@@ -50,9 +52,9 @@ export default function AttendTest() {
   const leaderboard=async()=>{
     const res = await fetch(`/api/leaderboard/${quizId}`);
     const data = await res.json();
-    setTop1(data[0]?.name || '')
-    setTop2(data[1]?.name || '')
-    setTop3(data[2]?.name || '')
+    setTop1(data[0]?{name:data[0]?.name || '',score:data[0].score || 0}:{});
+    setTop2(data[1]?{name:data[1]?.name || '',score:data[1].score || 0}:{});
+    setTop3(data[2]?{name:data[2]?.name || '',score:data[2].score || 0}:{});
     setRes(false);
     showLeader(true);
   }
@@ -167,12 +169,12 @@ useEffect(() => {
      </div>
      }
      {leader && <div className='fixed inset-0 z-50 backdrop-blur-sm flex justify-center items-center'>
-          <div className='bg-white rounded-lg px-14 py-3 shadow-lg'>
+          <div className='bg-white rounded-lg w-[40%] shadow-lg'>
             <h1 className='text-center text-black text-4xl font-bold m-5'>Top Scorers</h1>
-        {top1 && <h1 className='text-green-500 text-2xl text-center'>🥇 {top1}</h1>}
+        {top1?.name && <h1 className='text-green-600 text-2xl text-center'>🥇 {top1.name} - {top1.score}</h1>}
         <div className="flex justify-evenly m-5">
-        {top2 && <h1 className='text-green-500 text-2xl'>🥈 {top2}</h1>}
-        {top3 && <h1 className='text-green-500 text-2xl'>🥉 {top3}</h1>}
+        {top2?.name && <h1 className='text-green-600 text-2xl'>🥈 {top2.name} - {top2.score}</h1>}
+        {top3?.name && <h1 className='text-green-600 text-2xl'>🥉 {top3.name} - {top3.score}</h1>}
         </div>
         <button className='text-red-700 float-left cursor-pointer' onClick={()=>{setRes(true);showLeader(false);}}>Close</button>
         </div>
