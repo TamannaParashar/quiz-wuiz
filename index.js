@@ -1,14 +1,13 @@
+import './config.js'
 import express from 'express';
 import multer from 'multer';
 import PdfParse from 'pdf-parse/lib/pdf-parse.js';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import './db.js'
 import Quiz from './models/quiz.js';
 import quizResponse from './models/quizResponse.js';
 
-dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-const url = "mongodb://localhost:27017/quiz-wuiz";
-
+//const url = "mongodb://localhost:27017/quiz-wuiz";
+const url = process.env.MONGO_URL
 mongoose.connect(url,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
