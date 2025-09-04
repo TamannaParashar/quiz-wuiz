@@ -7,6 +7,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL
 export default function AttendTest() {
   const navigate = useNavigate();
   const {user} = useUser();
+  const [proceed,setProceed] = useState(true);
   const [quizContent, setQuizContent] = useState('');
   const [answerCount, setAnswerCount] = useState(0);
   const [submit,setSubmit] = useState(false);
@@ -36,7 +37,7 @@ const parseAnsKey = (ansKey) => {
 
     const quizId = url.split('/').pop();
     setQuizId(quizId);
-
+    setProceed(false);
     try {
       const res = await fetch(`${backendUrl}/api/getTest/${quizId}`);
       const data = await res.json();
@@ -96,7 +97,7 @@ useEffect(() => {
         quizId: quizId
     };
     try {
-      const res = await fetch('/api/addResponse', {
+      const res = await fetch(`${backendUrl}/api/addResponse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,11 +129,11 @@ useEffect(() => {
       <div className='flex justify-center'>
         <input type='url' id='link' placeholder='Paste quiz link here' className='p-3 rounded-lg bg-white text-black m-4 w-full max-w-2xl' />
       </div>
-      <div className='flex justify-center'>
+      {proceed && <div className='flex justify-center'>
         <button className='bg-green-600 p-3 rounded-lg' onClick={handleTest}>
           Proceed
         </button>
-      </div>
+      </div>}
 
       {quizContent && (
         <div className="bg-gray-900 mt-6 p-4 rounded-lg max-w-4xl mx-auto text-white">
