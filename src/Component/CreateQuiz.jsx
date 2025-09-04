@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function CreateQuiz() {
   const [isAnimated, setIsAnimated] = useState(false);
@@ -28,7 +29,7 @@ export default function CreateQuiz() {
         formData.append('pdf',pdf);
       }
     try {
-      const res = await fetch('/api/generate-quiz', {
+      const res = await fetch(`${backendUrl}/api/generate-quiz`, {
         method: 'POST',
         body:formData,
       });
