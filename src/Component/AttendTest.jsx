@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 export default function AttendTest() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const parseAnsKey = (ansKey) => {
     setQuizId(quizId);
 
     try {
-      const res = await fetch(`/api/getTest/${quizId}`);
+      const res = await fetch(`${backendUrl}/api/getTest/${quizId}`);
       const data = await res.json();
       setQuizContent(data.content);
       setAnswerCount(data.questionCount);
@@ -50,7 +51,7 @@ const parseAnsKey = (ansKey) => {
     setSubmit(true)
   };
   const leaderboard=async()=>{
-    const res = await fetch(`/api/leaderboard/${quizId}`);
+    const res = await fetch(`${backendUrl}/api/leaderboard/${quizId}`);
     const data = await res.json();
     setTop1(data[0]?{name:data[0]?.name || '',score:data[0].score || 0}:{});
     setTop2(data[1]?{name:data[1]?.name || '',score:data[1].score || 0}:{});
