@@ -99,7 +99,7 @@ export default function CreateQuiz() {
                 <label htmlFor="reference" className="block text-sm font-medium text-gray-300 mb-1">Reference Material</label>
                 <input type="text" name="reference" id="referenceText" placeholder="Add reference links or materials..." className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 <p className="m-2 text-white">PDF?<input type="file" name="reference" id="referencePdf" onChange={(e) => setPdf(e.target.files[0])} className="text-white" /></p>
-                {pdf && <p className="text-green-500">Pdf:{pdf.name}</p>}
+                {pdf && <p className="text-green-500 text-sm">Pdf:{pdf.name}</p>}
               </div>
 
               {/* Time Limit */}

@@ -173,10 +173,10 @@ useEffect(() => {
      {leader && <div className='fixed inset-0 z-50 backdrop-blur-sm flex justify-center items-center'>
           <div className='bg-white rounded-lg w-[40%] shadow-lg'>
             <h1 className='text-center text-black text-4xl font-bold m-5'>Top Scorers</h1>
-        {top1?.name && <h1 className='text-green-600 text-2xl text-center'>🥇 {top1.name} - {top1.score}</h1>}
+        {top1?.name && <h1 className='text-green-600 font-semibold text-2xl text-center'>🥇 {top1.name} - {top1.score}</h1>}
         <div className="flex justify-evenly m-5">
-        {top2?.name && <h1 className='text-green-600 text-2xl'>🥈 {top2.name} - {top2.score}</h1>}
-        {top3?.name && <h1 className='text-green-600 text-2xl'>🥉 {top3.name} - {top3.score}</h1>}
+        {top2?.name && <h1 className='text-green-600 font-semibold text-2xl'>🥈 {top2.name} - {top2.score}</h1>}
+        {top3?.name && <h1 className='text-green-600 font-semibold text-2xl'>🥉 {top3.name} - {top3.score}</h1>}
         </div>
         <button className='text-red-700 float-left cursor-pointer' onClick={()=>{setRes(true);showLeader(false);}}>Close</button>
         </div>
