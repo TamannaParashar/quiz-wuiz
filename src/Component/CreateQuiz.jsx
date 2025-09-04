@@ -63,7 +63,7 @@ export default function CreateQuiz() {
         <div className="h-full flex items-center justify-center p-8">
           <form className="w-full max-w-md space-y-6" onSubmit={handleGenerateQuiz}>
             <div className="text-center mb-3">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent mb-2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent mb-2">
                 Create Quiz
               </h1>
             </div>
@@ -71,19 +71,19 @@ export default function CreateQuiz() {
             <div className="space-y-5">
               {/* Topic Input */}
               <div>
-                <label htmlFor="topic" className="block text-sm font-medium text-gray-300 mb-2">Topic</label>
+                <label htmlFor="topic" className="block text-sm font-medium text-gray-300 mb-1">Topic</label>
                 <input type="text" name="topic" id="topic" placeholder="Enter quiz topic..." className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
               {/* Number of Questions */}
               <div>
-                <label htmlFor="ques" className="block text-sm font-medium text-gray-300 mb-2">Number of Questions</label>
+                <label htmlFor="ques" className="block text-sm font-medium text-gray-300 mb-1">Number of Questions</label>
                 <input type="number" name="ques" id="ques" placeholder="10" min="1" max="50" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
               {/* Difficulty Level */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Difficulty Level</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Difficulty Level</label>
                 <div className="flex space-x-4">
                   {["Easy", "Medium", "Hard"].map((level) => (
                     <label key={level} className="flex items-center cursor-pointer">
@@ -96,7 +96,7 @@ export default function CreateQuiz() {
 
               {/* Reference Material */}
               <div>
-                <label htmlFor="reference" className="block text-sm font-medium text-gray-300 mb-2">Reference Material</label>
+                <label htmlFor="reference" className="block text-sm font-medium text-gray-300 mb-1">Reference Material</label>
                 <input type="text" name="reference" id="referenceText" placeholder="Add reference links or materials..." className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 <p className="m-2 text-white">PDF?<input type="file" name="reference" id="referencePdf" onChange={(e) => setPdf(e.target.files[0])} className="text-white" /></p>
                 {pdf && <p className="text-green-500">Pdf:{pdf.name}</p>}
@@ -104,7 +104,7 @@ export default function CreateQuiz() {
 
               {/* Time Limit */}
               <div>
-                <label htmlFor="time" className="block text-sm font-medium text-gray-300 mb-2">Time Limit (minutes)</label>
+                <label htmlFor="time" className="block text-sm font-medium text-gray-300 mb-1">Time Limit (minutes)</label>
                 <input type="number" name="time" id="time" placeholder="30" min="1" max="180" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
