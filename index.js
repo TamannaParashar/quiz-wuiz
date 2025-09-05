@@ -34,13 +34,17 @@ app.post('/api/generate-quiz',upload.single('pdf'), async (req, res) => {
 Reference material: ${fullReference}
 Each question should have exactly 4 options, and only one correct answer.
 
-Format the options as a bulleted list using Markdown, like:
-
-- Option A) Option 1  
-- Option B) Option 2  
-- Option C) Option 3  
-- Option D) Option 4
-Write answers to all questions at the bottom like (A) or (B) or (C) or (D).`;
+Requirements:
+- Each question must be in bold markdown format, e.g. **Question text**
+- After each question and its options, insert a markdown horizontal rule (---) on its own line.
+- Each question must have exactly 4 options labeled as bullet points:
+  - Option A) Option 1  
+  - Option B) Option 2  
+  - Option C) Option 3  
+  - Option D) Option 4
+- At the end, write the answers in this format: (A), (B), (C), or (D).
+  
+Make sure to follow the formatting exactly as described above.`;
 //(Just the option name like (A) or (B) or (C) or (D))
   
   try {
