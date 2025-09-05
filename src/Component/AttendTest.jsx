@@ -137,60 +137,8 @@ useEffect(() => {
 
       {quizContent && (
         <div className="bg-gray-900 mt-6 p-4 rounded-lg max-w-4xl mx-auto text-white">
-          {quizContent
-  .split(/\*\*Question \d+:\*\*/g) // Split at "**Question X:**"
-  .filter(q => q.trim() !== '') // Remove any empty strings
-  .map((content, index) => (
-    <div
-      key={index}
-      className="p-4 my-6 bg-gray-800 rounded-lg shadow-md text-white"
-    >
-      <ReactMarkdown>
-        {`**Question ${index + 1}:**${content}`}
-      </ReactMarkdown>
-
-      <div className="mt-4 flex flex-col gap-2">
-        <label>
-          <input
-            type="radio"
-            name={`ques${index}`}
-            onChange={() => handleAnswerChange(index, 'A')}
-            className="mr-2"
-          />
-          A
-        </label>
-        <label>
-          <input
-            type="radio"
-            name={`ques${index}`}
-            onChange={() => handleAnswerChange(index, 'B')}
-            className="mr-2"
-          />
-          B
-        </label>
-        <label>
-          <input
-            type="radio"
-            name={`ques${index}`}
-            onChange={() => handleAnswerChange(index, 'C')}
-            className="mr-2"
-          />
-          C
-        </label>
-        <label>
-          <input
-            type="radio"
-            name={`ques${index}`}
-            onChange={() => handleAnswerChange(index, 'D')}
-            className="mr-2"
-          />
-          D
-        </label>
-      </div>
-    </div>
-))}
-
-          {/* {Array.from({ length: answerCount }).map((_, index) => (
+          <ReactMarkdown>{quizContent}</ReactMarkdown>
+          {Array.from({ length: answerCount }).map((_, index) => (
             <div key={index} className="flex m-5">
               Question {index+1}
               <input type="radio" name={`ques${index}`} id={`ques${index}a`} onChange={() => handleAnswerChange(index, 'A')}  />
@@ -198,7 +146,7 @@ useEffect(() => {
               <input type="radio" name={`ques${index}`} id={`ques${index}c`} onChange={() => handleAnswerChange(index, 'C')} />
               <input type="radio" name={`ques${index}`} id={`ques${index}d`} onChange={() => handleAnswerChange(index, 'D')} />
             </div>
-          ))}; */}
+          ))};
         </div>
       )}
       {submit && <button className='bg-green-600 p-3 rounded-lg' onClick={handleResponse}>

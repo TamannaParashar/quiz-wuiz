@@ -30,12 +30,12 @@ app.post('/api/generate-quiz',upload.single('pdf'), async (req, res) => {
     }
   }
 
-const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
+  const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
 Reference material: ${fullReference}
 Each question should have exactly 4 options, and only one correct answer.
 
 Format the options as a bulleted list using Markdown, like:
-Question 1:
+
 - Option A) Option 1  
 - Option B) Option 2  
 - Option C) Option 3  
