@@ -46,17 +46,17 @@ export default function CreateQuiz() {
 
   return (
     <div className="min-h-screen bg-gray-900 overflow-hidden relative">
-      <div className={`absolute inset-0 transition-all duration-2000 ease-in-out ${isAnimated ? "w-1/2" : "w-full"}`}>
+      <div className={`hidden md:block absolute inset-0 transition-all duration-2000 ease-in-out ${isAnimated ? "w-1/2" : "w-full"}`}>
         <img
           src="/create.jpg"
           alt="Image not Found"
-          className="w-full h-full object-cover"
+          className=" w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-gray-900/20"></div>
       </div>
 
       <div
-        className={`absolute right-0 top-0 h-full w-1/2 bg-gray-900 transition-all duration-2000 ease-in-out ${
+        className={`absolute right-0 top-0 h-full w-full md:w-1/2 bg-gray-900 transition-all duration-2000 ease-in-out ${
           isAnimated ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
         }`}
       >
