@@ -30,7 +30,7 @@ app.post('/api/generate-quiz',upload.single('pdf'), async (req, res) => {
     }
   }
 
-  const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
+const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
 Reference material: ${fullReference}
 Each question should have exactly 4 options, and only one correct answer.
 
