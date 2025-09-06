@@ -105,7 +105,7 @@ export default function Certificate(){
               </div>
 
               <p className="text-sm sm:text-lg lg:text-xl text-gray-300 max-w-xs sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2">
-                has successfully participated in the
+                has successfully participated in the{''}
                 <span className="text-emerald-400 font-semibold break-words">{quizTitle}</span>
                 <br className="hidden sm:block" />
                 <span className="block sm:inline"> and demonstrated excellence in AI-powered learning</span>
