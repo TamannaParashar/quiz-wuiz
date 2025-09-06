@@ -95,5 +95,21 @@ app.get('/api/leaderboard/:quizId',async(req,res)=>{
     res.json(data);
 })
 
+app.get('/api/checkAttempt/:quizId', async (req, res) => {
+  const quizId = req.params.quizId;
+  const email = req.query.email;
+  try {
+    const attempt = await quizResponse.findOne({ quizId, email });
+    if (attempt) {
+      return res.status(403).json({ message: 'You have already attempted this quiz.' });
+    } else {
+      return res.json({ message: 'Allowed to attempt' });
+    }
+  } catch (err) {
+    console.error('Error checking attempt:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

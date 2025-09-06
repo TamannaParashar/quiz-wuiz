@@ -33,12 +33,16 @@ const parseAnsKey = (ansKey) => {
     const input = document.getElementById('link');
     const url = input.value.trim();
 
-    if (!url) return setError("Please paste a valid link.");
-
     const quizId = url.split('/').pop();
     setQuizId(quizId);
     setProceed(false);
     try {
+      const checkRes = await fetch(`${backendUrl}/api/checkAttempt/${quizId}?email=${encodeURIComponent(user.primaryEmailAddress.emailAddress)}`);
+    if (checkRes.status === 403) {
+      alert('You have already attempted this quiz.');
+      navigate('/');
+      return;
+    }
       const res = await fetch(`${backendUrl}/api/getTest/${quizId}`);
       const data = await res.json();
       setQuizContent(data.content);
