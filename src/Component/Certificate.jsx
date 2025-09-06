@@ -105,9 +105,9 @@ export default function Certificate(){
               </div>
 
               <p className="text-sm sm:text-lg lg:text-xl text-gray-300 max-w-xs sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2">
-                has successfully participated in quiz on{' '}
+                has successfully participated in quiz on<br className="hidden sm:block" />
                 <span className="text-emerald-400 font-semibold break-words">{quizTitle}</span>
-                <br className="hidden sm:block" /><span className="block sm:inline">{' '}and demonstrated excellence in AI-powered learning</span></p>
+                <br className="hidden sm:block" /><span className="block sm:inline">and demonstrated excellence in AI-powered learning</span></p>
 
               <div className="inline-block bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-400/30 mx-2">
                 <p className="text-lg sm:text-xl lg:text-2xl text-emerald-400 font-bold">Score: {score}</p>
