@@ -17,7 +17,7 @@ export default function Certificate(){
     const getCertificateDetails= async ()=>{
         try{
             const email = user.primaryEmailAddress.emailAddress;
-            const details = await fetch(`/api/getDetails?email=${email}`);
+            const details = await fetch(`${backendUrl}/api/getDetails?email=${email}`);
             const res = await details.json();
            if(!res || res.length==0){
             alert('No quiz attempted');
@@ -27,7 +27,7 @@ export default function Certificate(){
            setQuizId(lastAttempt.quizId);
            setParticipantName(lastAttempt.name);
            setScore(lastAttempt.score);
-           const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
+           const quizRes = await fetch(`${backendUrl}/api/getTest/${lastAttempt.quizId}`);
            const quizData = await quizRes.json();
            setQuizTitle(quizData.topic);
         }catch(err){
@@ -105,7 +105,7 @@ export default function Certificate(){
               </div>
 
               <p className="text-sm sm:text-lg lg:text-xl text-gray-300 max-w-xs sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2">
-                has successfully participated in the{quizTitle}
+                has successfully participated {quizTitle}
                 <span className="text-emerald-400 font-semibold break-words">{quizTitle}</span>
                 <br className="hidden sm:block" />
                 <span className="block sm:inline"> and demonstrated excellence in AI-powered learning</span>
