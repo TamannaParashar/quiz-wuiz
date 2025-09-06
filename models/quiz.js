@@ -13,6 +13,10 @@ const newQuiz = new mongoose.Schema({
         type:Number,
         required:true
     },
+    topic:{
+        type:String,
+        required:true
+    },
     createdAt:{
         type:Date,
         default:Date.now

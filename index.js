@@ -56,7 +56,8 @@ Make sure to follow the formatting exactly as described above.`;
     const arr = quiz.split(/(?=Answers:)/i);
     const ques = arr[0]?.trim()||"";
     const ans = arr[1]?.trim()||"";
-    const qContent = new Quiz({content:ques,ansKey:ans,time:time})
+    console.log('Incoming topic:', JSON.stringify(req.body.topic));
+    const qContent = new Quiz({content:ques,ansKey:ans,time:time,topic:topic})
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
     res.json({ quizContent: response.text , quizId: qContent._id});
@@ -76,7 +77,7 @@ app.get('/api/getTest/:id',async(req,res)=>{
     
     const answerCount = countQuestions(data.ansKey);
 
-    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount,time:data.time})
+    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount,time:data.time,topic:data.topic})
     }catch(err){
         console.log("Quiz can't be attempted",err)
     }
@@ -99,8 +100,8 @@ app.get('/api/checkAttempt/:quizId', async (req, res) => {
   const quizId = req.params.quizId;
   const email = req.query.email;
   try {
-    const attempt = await quizResponse.findOne({ quizId, email });
-    if (attempt) {
+    const isAttempted = await quizResponse.findOne({ quizId, email });
+    if (isAttempted) {
       return res.status(403).json({ message: 'You have already attempted this quiz.' });
     } else {
       return res.json({ message: 'Allowed to attempt' });
@@ -110,6 +111,12 @@ app.get('/api/checkAttempt/:quizId', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/getDetails',async (req,res)=>{
+  const email = req.query.email
+  const certificateDetails = await quizResponse.find({email})
+  return res.json(certificateDetails)
+})
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

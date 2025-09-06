@@ -38,11 +38,13 @@ const parseAnsKey = (ansKey) => {
     setProceed(false);
     try {
       const checkRes = await fetch(`${backendUrl}/api/checkAttempt/${quizId}?email=${encodeURIComponent(user.primaryEmailAddress.emailAddress)}`);
-    if (checkRes.status === 403) {
+
+    if (checkRes.status === 403){
       alert('You have already attempted this quiz.');
       navigate('/');
       return;
     }
+
       const res = await fetch(`${backendUrl}/api/getTest/${quizId}`);
       const data = await res.json();
       setQuizContent(data.content);
@@ -125,15 +127,18 @@ useEffect(() => {
 
   return (
     <div className='bg-gray-800 min-h-screen p-4 text-white'>
+      <div className='w-full flex justify-end mb-4'>
+        <button className='bg-green-600 p-3 rounded-lg cursor-pointer' onClick={()=>navigate('/certificate')}>Download Certificate</button>
+      </div>
         {submit && !res && (
         <div className="text-center text-xl font-bold mb-4">
           Time Left: {formatTime(timeLeft)}
         </div>
       )}
-      <div className='flex justify-center'>
+      <div className='w-full max-w-2xl px-4'>
         <input type='url' id='link' placeholder='Paste quiz link here' className='p-3 rounded-lg bg-white text-black m-4 w-full max-w-2xl' />
       </div>
-      {proceed && <div className='flex justify-center'>
+      {proceed && <div className='mt-6'>
         <button className='bg-green-600 p-3 rounded-lg' onClick={handleTest}>
           Proceed
         </button>

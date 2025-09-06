@@ -6,6 +6,7 @@ import CreateQuiz from './Component/CreateQuiz'
 import GeneratedQuiz from './Component/GeneratedQuiz'
 import Home from './Component/HomePage'
 import {Routes,Route } from 'react-router-dom'
+import Certificate from './Component/Certificate'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             </>}></Route>
           <Route path='/generatedQuiz' element={<GeneratedQuiz/>}></Route>
           <Route path='/attendQuiz' element={<><SignedIn><AttendTest/></SignedIn><SignedOut><RedirectToSignIn/></SignedOut></>}></Route>
+          <Route path='/certificate' element={<Certificate/>}></Route>
         </Routes>
     
     </div>
