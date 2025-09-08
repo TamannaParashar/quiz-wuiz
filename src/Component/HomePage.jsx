@@ -1,5 +1,5 @@
 import { SignedOut, SignIn, SignInButton, SignOutButton, UserButton } from "@clerk/clerk-react"
-import { Brain, Users, Zap, BookOpen, GraduationCap, ChevronRight, Github } from "lucide-react"
+import { Brain, Zap, BookOpen, GraduationCap, ChevronRight, Github, Smile } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -250,12 +250,12 @@ export default function Home() {
 
             <div className="p-6 hover:shadow-xl hover:-translate-y-3 transition-all duration-500 group bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg">
               <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-300 group-hover:bg-blue-500/30">
-                <Users className="w-6 h-6 text-blue-400 group-hover:animate-pulse" />
+                <Smile className="w-6 h-6 text-blue-400 group-hover:animate-pulse" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors duration-300">
-                Collaborative
+                User-Friendly
               </h3>
-              <p className="text-gray-300">Real-time interaction between teachers and students</p>
+              <p className="text-gray-300">Create quiz on any topic or using any PDF and attend</p>
             </div>
 
             <div className="p-6 hover:shadow-xl hover:-translate-y-3 hover:-rotate-1 transition-all duration-500 group bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg">
@@ -265,7 +265,7 @@ export default function Home() {
               <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors duration-300">
                 Instant Results
               </h3>
-              <p className="text-gray-300">Immediate feedback and detailed analytics</p>
+              <p className="text-gray-300">Get the score and participation certificate</p>
             </div>
           </div>
         </div>
