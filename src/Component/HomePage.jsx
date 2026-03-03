@@ -1,281 +1,132 @@
-import { SignedOut, SignIn, SignInButton, SignOutButton, UserButton } from "@clerk/clerk-react"
-import { Brain, Zap, BookOpen, GraduationCap, ChevronRight, Github, Smile } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-
+import { SignedOut, SignInButton, SignOutButton } from "@clerk/clerk-react"
+import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 export default function Home() {
-  const navigate = useNavigate();
-  const [animationPhase, setAnimationPhase] = useState(0)
+  const navigate = useNavigate()
 
-  const getBlinkColor = () => {
-    const colors = [
-      "from-emerald-400 to-blue-400",
-      "from-blue-400 to-purple-400",
-      "from-purple-400 to-pink-400",
-      "from-pink-400 to-red-400",
-      "from-red-400 to-orange-400",
-    ]
-    return colors[animationPhase % colors.length]
-  }
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationPhase((prevPhase) => prevPhase + 1)
-    }, 800) 
-
-    return () => clearInterval(interval)
-  }, [])
-  const handleCreate=()=>{
-    navigate('/createQuiz')
-  }
-  const handleAttend=()=>{
-    navigate('/attendQuiz')
-  }
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <header className="border-b border-gray-800 backdrop-blur-sm bg-gray-900/80 sticky top-0 z-50">
-        <div className="container mx-auto flex items-center justify-between">
-            <img src="ai.png" alt="" className="h-18 relative" />        
-            <span className="text-xl font-bold text-white absolute" style={{textShadow:'2px 2px 2px black'}}>Quiz-Wuiz</span>
-          <div className="flex justify-end">
-            <div className="mr-5">
-          <SignedOut>
-            <SignInButton/> 
-          </SignedOut>
-          </div>
-          <SignOutButton/>
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+
+      {/* NAVBAR */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/70 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <h1 className="text-xl font-semibold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Quiz-Wuiz
+          </h1>
+
+          <div className="flex items-center gap-4">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 transition-colors font-medium text-white">
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignOutButton>
+              <button className="text-sm text-slate-400 hover:text-white transition">
+                Sign Out
+              </button>
+            </SignOutButton>
           </div>
         </div>
       </header>
 
-      {/* options here */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
-          <div
-            className="absolute inset-0 opacity-10 bg-cover bg-center"
-            style={{
-              backgroundImage: `url('/ai-neural-network-connections-and-learning-algorit.png')`,
-            }}
-          />
-          <div
-            className="absolute top-20 right-20 w-64 h-64 opacity-5 bg-cover bg-center"
-            style={{
-              backgroundImage: `url('/brain-with-circuit-patterns-ai-learning.png')`,
-            }}
-          />
-          <div
-            className="absolute bottom-20 left-20 w-48 h-48 opacity-5 bg-cover bg-center"
-            style={{
-              backgroundImage: `url('/digital-education-books-and-graduation-cap.png')`,
-            }}
-          />
-        </div>
+      {/* HERO SECTION */}
+      <section className="max-w-7xl mx-auto px-6 py-24 text-center">
+        <h2 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight mb-6">
+          AI-Powered
+          <span className="block bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Smart Quiz Platform
+          </span>
+        </h2>
 
-        <div className="container mx-auto px-4 py-20 relative">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-            <div className="lg:w-1/2">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                <span className="inline-block relative">
-                  <span
-                    className={`inline-block transition-all duration-1000 ease-in-out ${
-                      animationPhase % 4 === 0
-                        ? "transform scale-105 text-emerald-400"
-                        : animationPhase % 4 === 1
-                          ? "transform rotate-1 text-blue-400"
-                          : animationPhase % 4 === 2
-                            ? "transform scale-95 text-purple-400"
-                            : "transform -rotate-1 text-cyan-400"
-                    }`}
-                    style={{
-                      textShadow:
-                        animationPhase % 4 === 1
-                          ? "0 0 15px rgba(59, 130, 246, 0.3)"
-                          : animationPhase % 4 === 2
-                            ? "0 0 15px rgba(168, 85, 247, 0.3)"
-                            : animationPhase % 4 === 3
-                              ? "0 0 15px rgba(34, 211, 238, 0.3)"
-                              : "0 0 15px rgba(52, 211, 153, 0.3)",
-                    }}
-                  >
-                    Quiz-Wuiz
-                  </span>
-                </span>
-                : An AI Integrated{" "}
-                <span
-                  className={`text-transparent bg-clip-text bg-gradient-to-r ${getBlinkColor()} transition-all duration-300`}
-                >
-                  Smart Quiz Platform
-                </span>
-              </h1>
+        <p className="max-w-2xl mx-auto text-slate-400 text-lg mb-10">
+          Generate intelligent quizzes instantly or participate in interactive
+          assessments. Designed for modern educators and learners.
+        </p>
 
-              <p className="text-xl text-gray-300 mb-8">
-                Create engaging quizzes or join interactive learning sessions. Experience the future of education.
-              </p>
-            </div>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            onClick={() => navigate("/createQuiz")}
+            className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
+          >
+            <GraduationCap className="w-5 h-5" />
+            Create Quiz
+            <ChevronRight className="w-4 h-4" />
+          </button>
 
-            <div className="relative lg:w-1/2 lg:pl-12">
-  
-  <svg
-    className="absolute inset-0 w-full h-full pointer-events-none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <defs>
-      <linearGradient id="multicolor-border" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="green" />
-        <stop offset="25%" stopColor="red" />
-        <stop offset="50%" stopColor="blue" />
-        <stop offset="75%" stopColor="yellow" />
-        <stop offset="100%" stopColor="pink" />
-      </linearGradient>
-    </defs>
-    <rect
-      x="1.5"
-      y="1.5"
-      width="calc(100% - 3px)"
-      height="calc(100% - 3px)"
-      stroke="url(#multicolor-border)"
-      strokeWidth="3"
-      fill="none"
-      rx="12"
-    />
-  </svg>
-
-  
-  <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-xl p-6">
-    <h3 className="text-lg font-semibold text-emerald-400 mb-4">Why This Platform?</h3>
-    <div className="space-y-3 text-sm text-gray-300">
-      <p>• AI-powered question generation saves hours of preparation time</p>
-      <p>• Real-time analytics provide instant insights into learning progress</p>
-      <p>• Adaptive difficulty ensures optimal challenge for every learner</p>
-      <p>• Seamless collaboration between educators and students</p>
-      <p>• Smart recommendations personalize the learning experience</p>
-    </div>
-  </div>
-</div>
-
-          </div>
-
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-16">
-            {/* Create Button */}
-            <div className="group relative overflow-hidden border-2 border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 hover:shadow-xl hover:shadow-emerald-500/20 hover:-translate-y-2 hover:rotate-1 bg-gray-800/50 backdrop-blur-sm rounded-lg">
-              <div
-                className="absolute inset-0 opacity-30 bg-cover bg-center group-hover:opacity-40 group-hover:scale-110 transition-all duration-700"
-                style={{
-                  backgroundImage: `url('/professional-teacher-at-whiteboard-with-students-i.png')`,
-                }}
-              />
-              <div className="relative p-8 text-center">
-                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 group-hover:shadow-lg group-hover:shadow-emerald-500/30">
-                  <GraduationCap className="w-8 h-8 text-white group-hover:animate-pulse" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
-                  Create
-                </h3>
-                <p className="text-gray-300 mb-6">Design intelligent quizzes with AI assistance</p>
-                <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center" onClick={handleCreate}>
-                  Start Creating
-                  <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
-                </button>
-              </div>
-            </div>
-
-            {/* Attend Button */}
-            <div className="group relative overflow-hidden border-2 border-blue-500/20 hover:border-blue-500/40 transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-2 hover:-rotate-1 bg-gray-800/50 backdrop-blur-sm rounded-lg">
-              <div
-                className="absolute inset-0 opacity-30 bg-cover bg-center group-hover:opacity-40 group-hover:scale-110 transition-all duration-700"
-                style={{
-                  backgroundImage: `url('/diverse-students-using-tablets-and-laptops-in-coll.png')`,
-                }}
-              />
-              <div className="relative p-8 text-center">
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-500 group-hover:shadow-lg group-hover:shadow-blue-500/30">
-                  <BookOpen className="w-8 h-8 text-white group-hover:animate-pulse" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
-                  Attend
-                </h3>
-                <p className="text-gray-300 mb-6">Join interactive learning sessions</p>
-                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg flex items-center justify-center" onClick={handleAttend}>
-                  Attend Quiz
-                  <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
-                </button>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={() => navigate("/attendQuiz")}
+            className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            Attend Quiz
+          </button>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-800/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              <span className="inline-block relative">
-                {["T", "a", "k", "e", "A", "w", "a", "y", "s"].map((letter, index) => (
-                  <span
-                    key={index}
-                    className="inline-block transition-all duration-300 hover:text-emerald-400 cursor-default hover:scale-125 hover:-translate-y-1"
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.textShadow = "0 0 10px rgba(52, 211, 153, 0.6)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.textShadow = "none"
-                    }}
-                  >
-                    {letter}
-                  </span>
-                ))}
-              </span>
-              ?
-            </h2>
+      {/* FEATURES */}
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="grid md:grid-cols-3 gap-8">
+
+          {/* Feature 1 */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 transition-all">
+            <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-6">
+              <Brain className="text-emerald-400 w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-white">
+              AI Question Generation
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Instantly create structured, multiple-choice quizzes using advanced AI models.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 hover:shadow-xl hover:-translate-y-3 hover:rotate-1 transition-all duration-500 group bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg">
-              <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 group-hover:bg-emerald-500/30">
-                <Brain className="w-6 h-6 text-emerald-400 group-hover:animate-pulse" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors duration-300">
-                AI-Powered
-              </h3>
-              <p className="text-gray-300">Smart question generation and adaptive learning paths</p>
+          {/* Feature 2 */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all">
+            <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-6">
+              <Zap className="text-cyan-400 w-6 h-6" />
             </div>
-
-            <div className="p-6 hover:shadow-xl hover:-translate-y-3 transition-all duration-500 group bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-300 group-hover:bg-blue-500/30">
-                <Smile className="w-6 h-6 text-blue-400 group-hover:animate-pulse" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors duration-300">
-                User-Friendly
-              </h3>
-              <p className="text-gray-300">Create quiz on any topic or using any PDF and attend</p>
-            </div>
-
-            <div className="p-6 hover:shadow-xl hover:-translate-y-3 hover:-rotate-1 transition-all duration-500 group bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 group-hover:bg-purple-500/30">
-                <Zap className="w-6 h-6 text-purple-400 group-hover:animate-pulse" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors duration-300">
-                Instant Results
-              </h3>
-              <p className="text-gray-300">Get the score and participation certificate</p>
-            </div>
+            <h3 className="text-xl font-semibold mb-3 text-white">
+              Instant Results
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Get real-time scoring, leaderboard rankings, and participation tracking.
+            </p>
           </div>
+
+          {/* Feature 3 */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 transition-all">
+            <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-6">
+              <BookOpen className="text-emerald-400 w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3 text-white">
+              Simple & Professional
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Clean interface designed for focus, performance, and reliability.
+            </p>
+          </div>
+
         </div>
       </section>
-      <footer className="flex bg-gray-800 justify-around p-2 shadow-lg">
-        <div className="flex">
-        &copy; {new Date().getFullYear()} Tamanna Parashar <Link to="https://github.com/TamannaParashar"><Github/></Link>
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
+        <div className="flex justify-center items-center gap-2">
+          © {new Date().getFullYear()} Quiz-Wuiz
+          <a
+            href="https://github.com/TamannaParashar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition"
+          >
+            <Github className="w-4 h-4 inline" />
+          </a>
         </div>
-       All rights reserved 
       </footer>
+
     </div>
   )
 }

@@ -29,7 +29,7 @@ export default function CreateQuiz() {
         formData.append('pdf',pdf);
       }
     try {
-      const res = await fetch(`${backendUrl}/api/generate-quiz`, {
+      const res = await fetch('/api/generate-quiz', {
         method: 'POST',
         body:formData,
       });
