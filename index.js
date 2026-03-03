@@ -30,34 +30,49 @@ app.post('/api/generate-quiz',upload.single('pdf'), async (req, res) => {
     }
   }
 
-  const prompt = `Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
-Reference material: ${fullReference}
-Each question should have exactly 4 options, and only one correct answer.
+const prompt = `
+Create a ${level} multiple-choice quiz on the topic "${topic}" with ${ques} questions.
 
-Requirements:
-- Each question must be in bold markdown format, e.g. **Question text**
-- After each question and its options, insert a markdown horizontal rule (---) on its own line.
-- Each question must have exactly 4 options labeled as bullet points:
-  - Option A) Option 1  
-  - Option B) Option 2  
-  - Option C) Option 3  
-  - Option D) Option 4
-- At the end, write the answers in this format: (A), (B), (C), or (D).
-  
-Make sure to follow the formatting exactly as described above.`;
-//(Just the option name like (A) or (B) or (C) or (D))
+Reference material:
+${fullReference}
+
+Return STRICTLY valid JSON in this format:
+
+{
+  "questions": [
+    {
+      "question": "Question text",
+      "options": {
+        "A": "Option text",
+        "B": "Option text",
+        "C": "Option text",
+        "D": "Option text"
+      },
+      "answer": "A"
+    }
+  ]
+}
+
+Rules:
+- Exactly 4 options per question
+- Only one correct answer
+- No markdown
+- No explanation
+- No extra text
+- Return JSON only
+`;
   
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
-    const quiz = response.text;
-    const arr = quiz.split(/(?=Answers:)/i);
-    const ques = arr[0]?.trim()||"";
-    const ans = arr[1]?.trim()||"";
-    console.log('Incoming topic:', JSON.stringify(req.body.topic));
-    const qContent = new Quiz({content:ques,ansKey:ans,time:time,topic:topic})
+    const quiz = JSON.parse(response.text);
+    const qContent = new Quiz({
+      content: quiz.questions,
+      time,
+      topic
+    });
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
     res.json({ quizContent: response.text , quizId: qContent._id});
@@ -67,20 +82,24 @@ Make sure to follow the formatting exactly as described above.`;
   }
 });
 
-app.get('/api/getTest/:id',async(req,res)=>{
-    try{
+app.get('/api/getTest/:id', async (req, res) => {
+  try {
     const data = await Quiz.findById(req.params.id);
-    const countQuestions = (ansKey) => {
-      const questionRegex = /\((.*?)\)/g;
-      return (ansKey.match(questionRegex) || []).length;
-    };
-    
-    const answerCount = countQuestions(data.ansKey);
 
-    res.json({content:data.content,ansKey:data.ansKey,questionCount:answerCount,time:data.time,topic:data.topic})
-    }catch(err){
-        console.log("Quiz can't be attempted",err)
+    if (!data) {
+      return res.status(404).json({ error: 'Quiz not found' });
     }
+
+    res.json({
+      content: data.content,
+      time: data.time,
+      topic: data.topic
+    });
+
+  } catch (err) {
+    console.error("Quiz can't be attempted", err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.post('/api/addResponse',async(req,res)=>{
