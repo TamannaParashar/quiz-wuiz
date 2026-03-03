@@ -2,37 +2,41 @@ import { useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react"
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-export default function Certificate(){
-  const {user} = useUser();
+export default function Certificate() {
+  const { user } = useUser();
   const [participantName, setParticipantName] = useState("");
   const [score, setScore] = useState("");
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [quizTitle, setQuizTitle] = useState("");
-  const [quizId,setQuizId] = useState();
+  const [quizId, setQuizId] = useState();
   const [date] = useState(new Date().toLocaleDateString());
   const CEO = "Tamanna Parashar"
 
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    const getCertificateDetails= async ()=>{
-        try{
-            const email = user.primaryEmailAddress.emailAddress;
-            const details = await fetch(`/api/getDetails?email=${email}`);
-            const res = await details.json();
-           if(!res || res.length==0){
-            alert('No quiz attempted');
-            return;
-           }
-           const lastAttempt = res[res.length-1];
-           setQuizId(lastAttempt.quizId);
-           setParticipantName(lastAttempt.name);
-           setScore(lastAttempt.score);
-           const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
-           const quizData = await quizRes.json();
-           setQuizTitle(quizData.topic);
-        }catch(err){
-            console.log('Failed to get user details',err);
+    const getCertificateDetails = async () => {
+      try {
+        const email = user.primaryEmailAddress.emailAddress;
+        const details = await fetch(`/api/getDetails?email=${email}`);
+        const res = await details.json();
+        if (!res || res.length == 0) {
+          alert('No quiz attempted');
+          return;
         }
+        const lastAttempt = res[res.length - 1];
+        setQuizId(lastAttempt.quizId);
+        setParticipantName(lastAttempt.name);
+        setScore(lastAttempt.score);
+        const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
+        const quizData = await quizRes.json();
+        setQuizTitle(quizData.topic);
+        if (quizData.content) {
+          setTotalQuestions(quizData.content.length);
+        }
+      } catch (err) {
+        console.log('Failed to get user details', err);
+      }
     }
 
     getCertificateDetails();
@@ -50,7 +54,7 @@ export default function Certificate(){
           transform transition-all duration-1000 ease-out
           ${isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"}
         `}
-        style={{ aspectRatio: "auto",printColorAdjust:"exact",WebkitPrintColorAdjust:"exact"}}
+        style={{ aspectRatio: "auto", printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
       >
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 border-l-2 border-t-2 sm:border-l-4 sm:border-t-4 border-emerald-400/60 rounded-tl-2xl sm:rounded-tl-3xl"></div>
@@ -110,7 +114,9 @@ export default function Certificate(){
                 <br className="hidden sm:block" /><span className="block sm:inline">and demonstrated excellence in AI-powered learning</span></p>
 
               <div className="inline-block bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-400/30 mx-2">
-                <p className="text-lg sm:text-xl lg:text-2xl text-emerald-400 font-bold">Score: {score}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl text-emerald-400 font-bold">
+                  Score: {totalQuestions > 0 ? Math.round((parseInt(score) / totalQuestions) * 100) : 0}%
+                </p>
               </div>
             </div>
           </div>
