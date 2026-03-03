@@ -45,9 +45,9 @@ export default function AttendTest() {
 
     setCheatWarnings(prev => {
       const next = prev + 1;
-      if (next < 3) {
+      if (next < 5) {
         setTimeout(() => {
-          alert(`Warning ${next}/3: ${reason}`);
+          alert(`Warning ${next}/5: ${reason}`);
           isAlertOpen.current = false;
           lastWarningTime.current = Date.now();
         }, 50);
@@ -59,8 +59,8 @@ export default function AttendTest() {
   };
 
   useEffect(() => {
-    if (cheatWarnings >= 3 && !submitted) {
-      alert("Your exam has been automatically submitted due to multiple cheating violations.");
+    if (cheatWarnings >= 5 && !submitted) {
+      alert("Your exam has been automatically submitted due to multiple cheating violations (5/5).");
       handleSubmit();
     }
   }, [cheatWarnings, submitted]);
@@ -220,6 +220,16 @@ export default function AttendTest() {
     const extractedId = url.split('/').pop();
     setQuizId(extractedId);
     setLoading(true);
+
+    // Request permissions before starting the exam to prevent false 'blur' cheating warnings from native prompts
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      alert("Camera and Microphone permissions are required to start this proctored test!");
+      setLoading(false);
+      return;
+    }
 
     try {
       const checkRes = await fetch(
