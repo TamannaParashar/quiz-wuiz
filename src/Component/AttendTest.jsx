@@ -7,11 +7,14 @@ import { Clock, CheckCircle2, Trophy, ArrowRight } from 'lucide-react';
 import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import * as handpose from '@tensorflow-models/handpose';
+import VerificationGate from './VerificationGate';
 
 export default function AttendTest() {
   const navigate = useNavigate();
   const { user } = useUser();
 
+  const [isVerified, setIsVerified] = useState(false);
+  const [warningLogs, setWarningLogs] = useState([]);
   const [quizContent, setQuizContent] = useState([]);
   const [quizId, setQuizId] = useState('');
   const [answers, setAnswers] = useState({});
@@ -42,6 +45,8 @@ export default function AttendTest() {
 
     isAlertOpen.current = true;
     lastWarningTime.current = Date.now();
+
+    setWarningLogs(prev => [...prev, reason]);
 
     setCheatWarnings(prev => {
       const next = prev + 1;
@@ -331,6 +336,7 @@ export default function AttendTest() {
           answers,
           score: userScore,
           quizId,
+          warnings: warningLogs,
         }),
       });
     } catch (err) {
@@ -352,6 +358,11 @@ export default function AttendTest() {
 
   // Calculate percentage
   const percentage = quizContent.length > 0 ? Math.round((score / quizContent.length) * 100) : 0;
+
+  // Verification Screen
+  if (!isVerified) {
+    return <VerificationGate onVerificationSuccess={() => setIsVerified(true)} />;
+  }
 
   // Landing/Input Screen
   if (!quizStarted) {
