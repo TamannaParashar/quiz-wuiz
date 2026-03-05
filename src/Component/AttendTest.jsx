@@ -38,6 +38,9 @@ export default function AttendTest() {
   const lastWarningTime = React.useRef(0);
   const isAlertOpen = React.useRef(false);
 
+  const [allowNoise, setAllowNoise] = useState(false);
+  const [allowHandGestures, setAllowHandGestures] = useState(false);
+
   const issueWarning = (reason) => {
     if (isAlertOpen.current) return;
     const now = Date.now();
@@ -103,14 +106,16 @@ export default function AttendTest() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 320, height: 240 },
-          audio: true,
+          audio: !allowNoise, // Only request audio if noise detection is enabled
         });
 
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContextRef.current.createMediaStreamSource(stream);
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-        source.connect(analyserRef.current);
+        if (!allowNoise) {
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioContextRef.current.createMediaStreamSource(stream);
+          analyserRef.current = audioContextRef.current.createAnalyser();
+          analyserRef.current.fftSize = 256;
+          source.connect(analyserRef.current);
+        }
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -121,7 +126,7 @@ export default function AttendTest() {
         }
       } catch (err) {
         console.error("Error accessing camera:", err);
-        alert("Camera access is required for proctoring. Please enable it.");
+        alert("Camera (and Microphone) access is required for proctoring. Please enable them.");
       }
     };
 
@@ -131,11 +136,13 @@ export default function AttendTest() {
         const loadedModel = await cocoSsd.load();
         modelRef.current = loadedModel;
 
-        try {
-          const handModel = await handpose.load();
-          handModelRef.current = handModel;
-        } catch (e) {
-          console.warn("Handpose model failed to load", e);
+        if (!allowHandGestures) {
+          try {
+            const handModel = await handpose.load();
+            handModelRef.current = handModel;
+          } catch (e) {
+            console.warn("Handpose model failed to load", e);
+          }
         }
 
         console.log("Models loaded");
@@ -154,7 +161,7 @@ export default function AttendTest() {
         tracks.forEach(track => track.stop());
       }
     };
-  }, [quizStarted, submitted]);
+  }, [quizStarted, submitted, allowNoise, allowHandGestures]);
 
   // Proctoring: Object Detection Loop
   useEffect(() => {
@@ -182,16 +189,43 @@ export default function AttendTest() {
           // ignore transient detection errors
         }
 
-        if (handModelRef.current) {
+        if (!allowHandGestures && handModelRef.current) {
           try {
             const handPredictions = await handModelRef.current.estimateHands(videoRef.current);
+
             if (handPredictions.length > 0) {
-              issueWarning("Suspicious hand gesture detected in camera frame!");
+              const hand = handPredictions[0];
+              const confidence = hand.handInViewConfidence;
+
+              // Calculate bounding box area to ensure it's not a tiny glitch artifact
+              let boxArea = 0;
+              if (hand.boundingBox) {
+                const width = hand.boundingBox.bottomRight[0] - hand.boundingBox.topLeft[0];
+                const height = hand.boundingBox.bottomRight[1] - hand.boundingBox.topLeft[1];
+                boxArea = width * height;
+              }
+
+              // Only flag if confidence is high AND the detected area is reasonably large 
+              // (Filters out tiny face/mouth movements being recognized as hands)
+              if (confidence > 0.90 && boxArea > 5000) {
+                // Require it to be present for a moment, not just a 1-frame glitch
+                if (!window.handGlitches) window.handGlitches = 0;
+                window.handGlitches++;
+
+                if (window.handGlitches > 3) {
+                  issueWarning("Suspicious hand gesture detected in camera frame!");
+                  window.handGlitches = 0; // reset after warning
+                }
+              } else {
+                window.handGlitches = 0; // reset if confidence drops
+              }
+            } else {
+              window.handGlitches = 0; // reset if no hands
             }
           } catch (err) { }
         }
 
-        if (analyserRef.current) {
+        if (!allowNoise && analyserRef.current) {
           const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
           analyserRef.current.getByteFrequencyData(dataArray);
           let sum = 0;
@@ -200,7 +234,8 @@ export default function AttendTest() {
           }
           const averageVolume = sum / dataArray.length;
 
-          if (averageVolume > 40) {
+          // Slightly increased threshold to avoid very minor background noise triggering it
+          if (averageVolume > 45) {
             issueWarning("Loud noise or talking detected!");
           }
         }
@@ -213,7 +248,7 @@ export default function AttendTest() {
     return () => {
       if (requestAnimationFrameId) cancelAnimationFrame(requestAnimationFrameId);
     };
-  }, [quizStarted, submitted, isCameraReady]);
+  }, [quizStarted, submitted, isCameraReady, allowNoise, allowHandGestures]);
 
   // Start Test
   const handleTest = async () => {
@@ -225,16 +260,6 @@ export default function AttendTest() {
     const extractedId = url.split('/').pop();
     setQuizId(extractedId);
     setLoading(true);
-
-    // Request permissions before starting the exam to prevent false 'blur' cheating warnings from native prompts
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      stream.getTracks().forEach(track => track.stop());
-    } catch (err) {
-      alert("Camera and Microphone permissions are required to start this proctored test!");
-      setLoading(false);
-      return;
-    }
 
     try {
       const checkRes = await fetch(
@@ -249,11 +274,70 @@ export default function AttendTest() {
         return;
       }
 
-      const res = await fetch(`/api/getTest/${extractedId}`);
-      const data = await res.json();
+      // We need to fetch test data FIRST to know if we need microphone permissions
+      // We need to fetch test data FIRST to know if we need microphone permissions
+      const initialRes = await fetch(`/api/getTest/${extractedId}`);
+      const initialData = await initialRes.json();
 
-      setQuizContent(data.content);
-      setTimeLeft(data.time * 60);
+      setAllowNoise(initialData.allowNoise);
+      setAllowHandGestures(initialData.allowHandGestures);
+
+      const requiresAudio = !initialData.allowNoise;
+
+      // Request permissions before starting the exam to prevent false 'blur' cheating warnings from native prompts
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: requiresAudio });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err) {
+        alert(`Camera ${requiresAudio ? 'and Microphone ' : ''}permissions are required to start this proctored test!`);
+        setLoading(false);
+        return;
+      }
+
+      // Check if there is an existing saved session
+      const savedSessionStr = localStorage.getItem(`quizData_${extractedId}`);
+      if (savedSessionStr) {
+        const savedSession = JSON.parse(savedSessionStr);
+        const timeSinceLastActive = (Date.now() - savedSession.lastActiveTimestamp) / 1000;
+
+        // 5 minutes = 300 seconds
+        if (timeSinceLastActive > 300) {
+          alert("Your exam session has expired due to being offline for more than 5 minutes. Submitting your saved answers.");
+
+          // Hydrate state so handleSubmit uses saved answers
+          setQuizContent(savedSession.quizContent);
+          setAnswers(savedSession.answers);
+          setScore(savedSession.score || 0);
+          setWarningLogs(savedSession.warningLogs || []);
+          setQuizStarted(true);
+
+          // Wait briefly for state to update, then submit
+          setTimeout(() => {
+            handleSubmitData(
+              savedSession.quizContent,
+              savedSession.answers,
+              savedSession.warningLogs,
+              extractedId
+            );
+          }, 100);
+          return;
+        } else {
+          // Resume within 5 minutes
+          alert("Resuming your existing exam session.");
+          setQuizContent(savedSession.quizContent);
+          setTimeLeft(savedSession.timeLeft);
+          setAnswers(savedSession.answers);
+          setWarningLogs(savedSession.warningLogs || []);
+          setCheatWarnings(savedSession.cheatWarnings || 0);
+          setQuizStarted(true);
+          setCurrentQuestion(0);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setQuizContent(initialData.content);
+      setTimeLeft(initialData.time * 60);
       setQuizStarted(true);
       setCurrentQuestion(0);
     } catch (err) {
@@ -263,7 +347,40 @@ export default function AttendTest() {
     setLoading(false);
   };
 
-  // Timer
+  // Helper to submit without relying completely on component state during an auto-submit scenario
+  const handleSubmitData = async (content, currentAnswers, warnings, currentQuizId) => {
+    let userScore = 0;
+    content.forEach((q, index) => {
+      if (currentAnswers[index] === q.answer) {
+        userScore++;
+      }
+    });
+
+    setScore(userScore);
+    setSubmitted(true);
+    localStorage.removeItem(`quizData_${currentQuizId}`);
+
+    try {
+      await fetch('/api/addResponse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: user.firstName,
+          email: user.primaryEmailAddress.emailAddress,
+          answers: currentAnswers,
+          score: userScore,
+          quizId: currentQuizId,
+          warnings: warnings,
+        }),
+      });
+    } catch (err) {
+      console.error('Error auto-submitting response:', err);
+    }
+  };
+
+  // Timer & Auto-Save
   useEffect(() => {
     if (!quizStarted || submitted) return;
 
@@ -274,10 +391,24 @@ export default function AttendTest() {
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
+
+      // Auto-save to localStorage
+      if (quizId) {
+        const sessionData = {
+          quizContent,
+          answers,
+          timeLeft: timeLeft - 1,   // save the next tick time
+          warningLogs,
+          cheatWarnings,
+          score,
+          lastActiveTimestamp: Date.now()
+        };
+        localStorage.setItem(`quizData_${quizId}`, JSON.stringify(sessionData));
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, quizStarted, submitted]);
+  }, [timeLeft, quizStarted, submitted, quizId, answers, warningLogs, cheatWarnings, score, quizContent]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
