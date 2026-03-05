@@ -25,7 +25,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/api/generate-quiz', upload.single('pdf'), async (req, res) => {
-  const { topic, ques, level, reference, time } = req.body;
+  const { topic, ques, level, reference, time, allowNoise, allowHandGestures } = req.body;
 
   let fullReference = reference || "";
 
@@ -79,7 +79,9 @@ Rules:
     const qContent = new Quiz({
       content: quiz.questions,
       time,
-      topic
+      topic,
+      allowNoise: allowNoise === 'true',
+      allowHandGestures: allowHandGestures === 'true'
     });
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
@@ -101,7 +103,9 @@ app.get('/api/getTest/:id', async (req, res) => {
     res.json({
       content: data.content,
       time: data.time,
-      topic: data.topic
+      topic: data.topic,
+      allowNoise: data.allowNoise,
+      allowHandGestures: data.allowHandGestures
     });
 
   } catch (err) {

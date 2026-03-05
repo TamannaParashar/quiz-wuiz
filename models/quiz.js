@@ -15,11 +15,19 @@ const newQuiz = new mongoose.Schema({
   ],
   time: Number,
   topic: String,
+  allowNoise: {
+    type: Boolean,
+    default: false
+  },
+  allowHandGestures: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-const Quiz = mongoose.model("Quiz",newQuiz);
+const Quiz = mongoose.model("Quiz", newQuiz);
 export default Quiz;

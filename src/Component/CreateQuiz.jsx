@@ -5,7 +5,12 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export default function CreateQuiz() {
   const [isAnimated, setIsAnimated] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pdf,setPdf] = useState(false);
+  const [pdf, setPdf] = useState(false);
+
+  // Proctoring Rules
+  const [allowNoise, setAllowNoise] = useState(false);
+  const [allowHandGestures, setAllowHandGestures] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsAnimated(true);
@@ -20,23 +25,25 @@ export default function CreateQuiz() {
     setLoading(true);
 
     const formData = new FormData();
-      formData.append('topic',e.target.topic.value);
-      formData.append('ques',e.target.ques.value);
-      formData.append('level',e.target.level.value);
-      formData.append('reference',e.target.reference.value);
-      formData.append('time',e.target.time.value);
-      if(pdf){
-        formData.append('pdf',pdf);
-      }
+    formData.append('topic', e.target.topic.value);
+    formData.append('ques', e.target.ques.value);
+    formData.append('level', e.target.level.value);
+    formData.append('reference', e.target.reference.value);
+    formData.append('time', e.target.time.value);
+    formData.append('allowNoise', allowNoise);
+    formData.append('allowHandGestures', allowHandGestures);
+    if (pdf) {
+      formData.append('pdf', pdf);
+    }
     try {
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
-        body:formData,
+        body: formData,
       });
       const json = await res.json();
       const quizContent = json.quizContent || "Failed to get quiz.";
       const quizId = json.quizId
-      navigate('/generatedQuiz',{state:{quizContent,quizId}})
+      navigate('/generatedQuiz', { state: { quizContent, quizId } })
     } catch (err) {
       console.error(err);
     }
@@ -56,9 +63,8 @@ export default function CreateQuiz() {
       </div>
 
       <div
-        className={`absolute right-0 top-0 h-full w-full md:w-1/2 bg-gray-900 transition-all duration-2000 ease-in-out ${
-          isAnimated ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-        }`}
+        className={`absolute right-0 top-0 h-full w-full md:w-1/2 bg-gray-900 transition-all duration-2000 ease-in-out ${isAnimated ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+          }`}
       >
         <div className="h-full flex items-center justify-center p-8">
           <form className="w-full max-w-md space-y-6" onSubmit={handleGenerateQuiz}>
@@ -106,6 +112,35 @@ export default function CreateQuiz() {
               <div>
                 <label htmlFor="time" className="block text-sm font-medium text-gray-300 mb-1">Time Limit (minutes)</label>
                 <input type="number" name="time" id="time" placeholder="30" min="1" max="180" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
+              </div>
+
+              {/* Proctoring Settings */}
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50 space-y-3">
+                <h3 className="text-sm font-semibold text-emerald-400 mb-2">Proctoring Rules</h3>
+
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={allowNoise}
+                    onChange={(e) => setAllowNoise(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 text-emerald-500 focus:ring-emerald-500 bg-gray-700"
+                  />
+                  <span className="ml-3 text-sm text-gray-300 group-hover:text-white transition-colors">
+                    Allow Background Noise / Speaking
+                  </span>
+                </label>
+
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={allowHandGestures}
+                    onChange={(e) => setAllowHandGestures(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 text-emerald-500 focus:ring-emerald-500 bg-gray-700"
+                  />
+                  <span className="ml-3 text-sm text-gray-300 group-hover:text-white transition-colors">
+                    Allow Hand Gestures
+                  </span>
+                </label>
               </div>
 
               {/* Create Button */}
