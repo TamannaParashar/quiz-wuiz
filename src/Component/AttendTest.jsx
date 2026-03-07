@@ -40,6 +40,7 @@ export default function AttendTest() {
 
   const [allowNoise, setAllowNoise] = useState(false);
   const [allowHandGestures, setAllowHandGestures] = useState(false);
+  const [passPercentage, setPassPercentage] = useState(70);
 
   const issueWarning = (reason) => {
     if (isAlertOpen.current) return;
@@ -275,12 +276,30 @@ export default function AttendTest() {
       }
 
       // We need to fetch test data FIRST to know if we need microphone permissions
-      // We need to fetch test data FIRST to know if we need microphone permissions
       const initialRes = await fetch(`/api/getTest/${extractedId}`);
       const initialData = await initialRes.json();
 
+      if (initialData.error) {
+        alert(initialData.error);
+        setLoading(false);
+        return;
+      }
+
+      const now = new Date();
+      if (initialData.startDate && new Date(initialData.startDate) > now) {
+        alert("This quiz has not started yet.");
+        setLoading(false);
+        return;
+      }
+      if (initialData.endDate && new Date(initialData.endDate) < now) {
+        alert("This quiz has already ended.");
+        setLoading(false);
+        return;
+      }
+
       setAllowNoise(initialData.allowNoise);
       setAllowHandGestures(initialData.allowHandGestures);
+      setPassPercentage(initialData.passPercentage || 70);
 
       const requiresAudio = !initialData.allowNoise;
 
@@ -710,7 +729,7 @@ export default function AttendTest() {
 
   // Results Screen
   if (submitted) {
-    const rating = percentage >= 80 ? '🏆 Excellent' : percentage >= 60 ? '👍 Good' : '📚 Keep Practicing';
+    const rating = percentage >= passPercentage ? '🏆 Passed' : '📚 Failed. Keep Practicing';
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 flex items-center justify-center">

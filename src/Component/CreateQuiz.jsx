@@ -6,10 +6,38 @@ export default function CreateQuiz() {
   const [isAnimated, setIsAnimated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pdf, setPdf] = useState(false);
+  const [loadingText, setLoadingText] = useState("Generate Quiz with AI");
+
+  // Scheduling & Passing
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [passPercentage, setPassPercentage] = useState(70);
 
   // Proctoring Rules
   const [allowNoise, setAllowNoise] = useState(false);
   const [allowHandGestures, setAllowHandGestures] = useState(false);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      const texts = [
+        "Analyzing Topic...",
+        "Reading Reference Material...",
+        "Crafting Questions...",
+        "Setting up Proctoring Rules...",
+        "Finalizing Quiz..."
+      ];
+      let i = 0;
+      setLoadingText(texts[0]);
+      interval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 2000);
+    } else {
+      setLoadingText("Generate Quiz with AI");
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,6 +60,9 @@ export default function CreateQuiz() {
     formData.append('time', e.target.time.value);
     formData.append('allowNoise', allowNoise);
     formData.append('allowHandGestures', allowHandGestures);
+    if (startDate) formData.append('startDate', startDate);
+    if (endDate) formData.append('endDate', endDate);
+    if (passPercentage) formData.append('passPercentage', passPercentage);
     if (pdf) {
       formData.append('pdf', pdf);
     }
@@ -67,7 +98,7 @@ export default function CreateQuiz() {
           }`}
       >
         <div className="h-full flex items-center justify-center p-8">
-          <form className="w-full max-w-md space-y-6" onSubmit={handleGenerateQuiz}>
+          <form className="w-full max-w-md space-y-6 max-h-[85vh] overflow-y-auto pr-2 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" onSubmit={handleGenerateQuiz}>
             <div className="text-center mb-3">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent mb-2">
                 Create Quiz
@@ -114,6 +145,24 @@ export default function CreateQuiz() {
                 <input type="number" name="time" id="time" placeholder="30" min="1" max="180" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
               </div>
 
+              {/* Pass Percentage */}
+              <div>
+                <label htmlFor="passPercentage" className="block text-sm font-medium text-gray-300 mb-1">Pass Percentage (%)</label>
+                <input type="number" name="passPercentage" id="passPercentage" value={passPercentage} onChange={(e) => setPassPercentage(e.target.value)} min="1" max="100" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" required />
+              </div>
+
+              {/* Scheduling */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-300 mb-1">Start Date & Time</label>
+                  <input type="datetime-local" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                </div>
+                <div>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-300 mb-1">End Date & Time</label>
+                  <input type="datetime-local" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                </div>
+              </div>
+
               {/* Proctoring Settings */}
               <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50 space-y-3">
                 <h3 className="text-sm font-semibold text-emerald-400 mb-2">Proctoring Rules</h3>
@@ -144,8 +193,14 @@ export default function CreateQuiz() {
               </div>
 
               {/* Create Button */}
-              <button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:from-emerald-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
-                {loading ? "Generating..." : "Generate Quiz with AI"}
+              <button type="submit" disabled={loading} className={`w-full bg-gradient-to-r ${loading ? 'from-emerald-600 to-blue-700 cursor-not-allowed opacity-75' : 'from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 hover:scale-105 hover:shadow-xl'} text-white font-semibold py-2 px-5 rounded-lg transform transition-all duration-200 shadow-lg flex justify-center items-center`}>
+                {loading && (
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {loadingText}
               </button>
             </div>
           </form>

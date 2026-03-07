@@ -23,6 +23,18 @@ const newQuiz = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  startDate: {
+    type: Date,
+    default: null
+  },
+  endDate: {
+    type: Date,
+    default: null
+  },
+  passPercentage: {
+    type: Number,
+    default: 70
+  },
   createdAt: {
     type: Date,
     default: Date.now

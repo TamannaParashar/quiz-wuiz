@@ -25,7 +25,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/api/generate-quiz', upload.single('pdf'), async (req, res) => {
-  const { topic, ques, level, reference, time, allowNoise, allowHandGestures } = req.body;
+  const { topic, ques, level, reference, time, allowNoise, allowHandGestures, startDate, endDate, passPercentage } = req.body;
 
   let fullReference = reference || "";
 
@@ -81,7 +81,10 @@ Rules:
       time,
       topic,
       allowNoise: allowNoise === 'true',
-      allowHandGestures: allowHandGestures === 'true'
+      allowHandGestures: allowHandGestures === 'true',
+      startDate: startDate || null,
+      endDate: endDate || null,
+      passPercentage: passPercentage ? Number(passPercentage) : 70
     });
     await qContent.save();
     console.log('Here is the quiz ID:', qContent._id);
@@ -105,7 +108,10 @@ app.get('/api/getTest/:id', async (req, res) => {
       time: data.time,
       topic: data.topic,
       allowNoise: data.allowNoise,
-      allowHandGestures: data.allowHandGestures
+      allowHandGestures: data.allowHandGestures,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      passPercentage: data.passPercentage
     });
 
   } catch (err) {
