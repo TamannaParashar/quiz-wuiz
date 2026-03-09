@@ -1,4 +1,4 @@
-import { SignedOut, SignInButton, SignOutButton } from "@clerk/clerk-react"
+import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/clerk-react"
 import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -23,11 +23,14 @@ export default function Home() {
                 </button>
               </SignInButton>
             </SignedOut>
-            <SignOutButton>
-              <button className="text-sm text-slate-400 hover:text-white transition">
-                Sign Out
-              </button>
-            </SignOutButton>
+
+            <SignedIn>
+              <SignOutButton>
+                <button className="text-sm text-slate-400 hover:text-white transition">
+                  Sign Out
+                </button>
+              </SignOutButton>
+            </SignedIn>
           </div>
         </div>
       </header>
