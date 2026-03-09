@@ -10,9 +10,10 @@ const ReportDetails = ({ report }) => {
         documentTitle: `Test_Report_${report.name.replace(/\s+/g, '_')}`,
     });
 
-    const { quizDetails, answers, score, warnings } = report;
+    const { quizDetails, answers, codingAnswers, score, warnings } = report;
     const questions = quizDetails?.content || [];
-    const totalQuestions = questions.length;
+    const codingQuestions = quizDetails?.codingQuestions || [];
+    const totalQuestions = questions.length + codingQuestions.length;
 
     return (
         <div className="p-6 bg-slate-800/50 border-t border-slate-700">
@@ -132,8 +133,45 @@ const ReportDetails = ({ report }) => {
                             );
                         })}
 
-                        {questions.length === 0 && (
+                        {questions.length === 0 && codingQuestions.length === 0 && (
                             <p className="text-slate-500 italic p-4 text-center">No detailed question data available for this quiz.</p>
+                        )}
+
+                        {codingQuestions.length > 0 && (
+                            <div className="mt-8 pt-6 border-t border-slate-700 print:border-gray-300">
+                                <h4 className="text-xl font-bold text-white mb-6 print:text-black">Coding Challenges</h4>
+                                <div className="space-y-6">
+                                    {codingQuestions.map((q, cqIndex) => {
+                                        // Find mapped coding answer from payload. (e.g. key is the real total index)
+                                        const globalIndex = questions.length + cqIndex;
+                                        const studentCode = (codingAnswers && codingAnswers[globalIndex]) || "";
+
+                                        // Because coding problems execute locally logic securely against test cases instantly on submission,
+                                        // we assume if they received the point natively from `/api/addResponse` they are correct. 
+                                        // But for a visual UI here, Admin can parse their code.
+
+                                        return (
+                                            <div key={cqIndex} className="p-6 rounded-2xl bg-slate-900 border border-slate-700 print:break-inside-avoid print:bg-white print:border-gray-300 print:shadow-none">
+                                                <div className="mb-4">
+                                                    <h5 className="font-semibold text-white text-lg print:text-slate-800">
+                                                        {globalIndex + 1}. {q.title || "Coding Problem"}
+                                                    </h5>
+                                                </div>
+                                                <div className="bg-black/50 p-4 rounded-xl border border-slate-800 print:bg-gray-50 print:border-gray-200">
+                                                    <span className="text-xs font-bold text-slate-500 tracking-wider uppercase mb-2 block">Student's Submitted Code</span>
+                                                    {studentCode.trim().length > 0 ? (
+                                                        <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap overflow-x-auto print:text-black">
+                                                            {studentCode}
+                                                        </pre>
+                                                    ) : (
+                                                        <span className="text-slate-500 text-sm italic">No code submitted by the student.</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>

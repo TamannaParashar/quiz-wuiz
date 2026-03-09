@@ -70,8 +70,8 @@ const AdminDashboard = () => {
                                     <tr
                                         onClick={() => toggleRow(idx)}
                                         className={`cursor-pointer hover:bg-slate-800 transition ${report.warnings?.length > 0
-                                                ? "bg-red-900/10 hover:bg-red-900/20"
-                                                : ""
+                                            ? "bg-red-900/10 hover:bg-red-900/20"
+                                            : ""
                                             }`}
                                     >
 
@@ -126,9 +126,9 @@ const AdminDashboard = () => {
                                         {/* SCORE */}
                                         <td className="px-6 py-5 text-lg font-bold text-white">
                                             {report.score}
-                                            {report.quizDetails?.content?.length && (
+                                            {report.quizDetails && (
                                                 <span className="text-slate-500 text-sm ml-1">
-                                                    / {report.quizDetails.content.length}
+                                                    / {(report.quizDetails.content?.length || 0) + (report.quizDetails.codingQuestions?.length || 0)}
                                                 </span>
                                             )}
                                         </td>
