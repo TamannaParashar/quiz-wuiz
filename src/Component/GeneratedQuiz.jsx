@@ -10,7 +10,18 @@ export default function GeneratedQuiz() {
   const quizId = location.state?.quizId
   const quizTitle = location.state?.quizTitle || 'Quiz'
 
-  const parsedQuiz = quizContent ? JSON.parse(quizContent) : null
+  let parsedQuiz = null;
+  let parsedCodingQuestions = [];
+  try {
+    const rawData = quizContent ? JSON.parse(quizContent) : null;
+    if (rawData) {
+      parsedQuiz = Array.isArray(rawData) ? { questions: rawData } : rawData;
+      parsedCodingQuestions = location.state?.codingQuestions ? JSON.parse(location.state.codingQuestions) : [];
+    }
+  } catch (err) {
+    console.error("Failed to parse quiz content:", err);
+  }
+
   const shareableLink = `${window.location.origin}/quiz-test/${quizId}`
 
   const handleCopyLink = () => {
@@ -35,7 +46,7 @@ export default function GeneratedQuiz() {
     )
   }
 
-  const totalQuestions = parsedQuiz.questions.length
+  const totalQuestions = (parsedQuiz?.questions?.length || 0) + parsedCodingQuestions.length
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -50,7 +61,7 @@ export default function GeneratedQuiz() {
             </h1>
             <div className="w-16" />
           </div>
-          
+
           <div className="flex items-center justify-between text-sm">
             <div className="text-slate-400">
               <span className="font-semibold text-white">{totalQuestions}</span> questions
@@ -114,17 +125,43 @@ export default function GeneratedQuiz() {
               </div>
             </div>
           ))}
+
+          {parsedCodingQuestions.map((cq, index) => (
+            <div
+              key={`coding-${index}`}
+              className="group bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-700 hover:border-slate-600 rounded-2xl p-8 transition transform hover:scale-[1.02]"
+            >
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center text-sm font-bold">
+                    {totalQuestions + index + 1}
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-100 leading-relaxed">
+                    {cq.title} (Coding Challenge)
+                  </h2>
+                </div>
+                <div className="prose prose-invert max-w-none text-sm text-slate-300" dangerouslySetInnerHTML={{ __html: cq.description }} />
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {cq.allowedLanguages.map(lang => (
+                  <span key={lang} className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">{lang}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 border border-emerald-500/30 rounded-xl">
+                <p className="text-sm font-semibold text-emerald-400">Contains {cq.testCases?.length || 0} Test Cases</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={handleCopyLink}
-            className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold transition transform ${
-              copied
+            className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold transition transform ${copied
                 ? 'bg-emerald-600 hover:bg-emerald-700'
                 : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600'
-            } text-white`}
+              } text-white`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />

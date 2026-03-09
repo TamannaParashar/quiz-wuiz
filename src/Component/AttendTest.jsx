@@ -8,6 +8,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import * as handpose from '@tensorflow-models/handpose';
 import VerificationGate from './VerificationGate';
+import { Play } from 'lucide-react'; // Added Play icon
 
 export default function AttendTest() {
   const navigate = useNavigate();
@@ -18,6 +19,20 @@ export default function AttendTest() {
   const [quizContent, setQuizContent] = useState([]);
   const [quizId, setQuizId] = useState('');
   const [answers, setAnswers] = useState({});
+  const [codingAnswers, setCodingAnswers] = useState({}); // { index: codeString }
+  const [codingLanguages, setCodingLanguages] = useState({}); // { index: selectedLanguage }
+  const [executionResults, setExecutionResults] = useState({}); // { index: { stdout, stderr, status, passedAll } }
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+
+  const boilerplateCodes = {
+    'javascript': "const fs = require('fs');\nconst input = fs.readFileSync('/dev/stdin').toString().trim().split('\\n');\n\n// Write your code here\n// let n = parseInt(input[0]);\n// console.log(input);",
+    'python': "import sys\n\n# Read all lines from standard input\ninput_data = sys.stdin.read().split()\n\n# Process your input here\n# n = int(input_data[0])\n# print(input_data)",
+    'cpp': "#include <iostream>\nusing namespace std;\n\nint main() {\n    // Read input:\n    // int n;\n    // cin >> n;\n    \n    // cout << n << endl;\n    return 0;\n}",
+    'c': "#include <stdio.h>\n\nint main() {\n    // int n;\n    // scanf(\"%d\", &n);\n    \n    // printf(\"%d\\n\", n);\n    return 0;\n}",
+    'java': "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        \n        // Read input:\n        // if (scanner.hasNextInt()) {\n        //     int n = scanner.nextInt();\n        // }\n    }\n}"
+  };
+
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -326,6 +341,7 @@ export default function AttendTest() {
           // Hydrate state so handleSubmit uses saved answers
           setQuizContent(savedSession.quizContent);
           setAnswers(savedSession.answers);
+          setCodingAnswers(savedSession.codingAnswers || {});
           setScore(savedSession.score || 0);
           setWarningLogs(savedSession.warningLogs || []);
           setQuizStarted(true);
@@ -346,6 +362,7 @@ export default function AttendTest() {
           setQuizContent(savedSession.quizContent);
           setTimeLeft(savedSession.timeLeft);
           setAnswers(savedSession.answers);
+          setCodingAnswers(savedSession.codingAnswers || {});
           setWarningLogs(savedSession.warningLogs || []);
           setCheatWarnings(savedSession.cheatWarnings || 0);
           setQuizStarted(true);
@@ -355,7 +372,23 @@ export default function AttendTest() {
         }
       }
 
-      setQuizContent(initialData.content);
+      const fullContent = [...initialData.content];
+      let initialCodingAnswers = {};
+      let initialCodingLanguages = {};
+
+      if (initialData.codingQuestions && initialData.codingQuestions.length > 0) {
+        initialData.codingQuestions.forEach((cq, indexOffset) => {
+          fullContent.push({ ...cq, type: 'coding' });
+          const realIdx = initialData.content.length + indexOffset;
+          const defaultLang = (cq.allowedLanguages && cq.allowedLanguages[0]) || 'javascript';
+          initialCodingLanguages[realIdx] = defaultLang;
+          initialCodingAnswers[realIdx] = boilerplateCodes[defaultLang.toLowerCase()] || "";
+        });
+      }
+
+      setQuizContent(fullContent);
+      setCodingLanguages(initialCodingLanguages);
+      setCodingAnswers(initialCodingAnswers);
       setTimeLeft(initialData.time * 60);
       setQuizStarted(true);
       setCurrentQuestion(0);
@@ -389,6 +422,7 @@ export default function AttendTest() {
           name: user.firstName,
           email: user.primaryEmailAddress.emailAddress,
           answers: currentAnswers,
+          codingAnswers: codingAnswers, // Add coding Answers map
           score: userScore,
           quizId: currentQuizId,
           warnings: warnings,
@@ -416,6 +450,7 @@ export default function AttendTest() {
         const sessionData = {
           quizContent,
           answers,
+          codingAnswers,
           timeLeft: timeLeft - 1,   // save the next tick time
           warningLogs,
           cheatWarnings,
@@ -438,11 +473,233 @@ export default function AttendTest() {
   // Handle Answer Selection
   const handleAnswerChange = (questionIndex, selectedOption) => {
     if (submitted) return;
-
     setAnswers((prev) => ({
       ...prev,
       [questionIndex]: selectedOption,
     }));
+  };
+
+  const handleCodeChange = (questionIndex, code) => {
+    if (submitted) return;
+    setCodingAnswers(prev => ({
+      ...prev,
+      [questionIndex]: code,
+    }));
+  };
+
+  const handleLanguageChange = (questionIndex, lang) => {
+    if (submitted) return;
+    setCodingLanguages(prev => ({
+      ...prev,
+      [questionIndex]: lang,
+    }));
+    // Reset code to boilerplate when language changes (if user wants a clean slate)
+    setCodingAnswers(prev => ({
+      ...prev,
+      [questionIndex]: boilerplateCodes[lang.toLowerCase()] || ""
+    }));
+  };
+
+  const handleRunCode = async (questionIndex) => {
+    if (submitted || isExecuting) return;
+
+    const code = codingAnswers[questionIndex] || "";
+    const question = quizContent[questionIndex];
+    // Default to the first allowed language if none selected
+    const lang = codingLanguages[questionIndex] || (question.allowedLanguages && question.allowedLanguages[0]) || "javascript";
+
+    if (!code.trim()) {
+      alert("Please write some code first.");
+      return;
+    }
+
+    setIsExecuting(true);
+
+    // Map our generic language names to Piston's specific aliases
+    const languageMap = {
+      'javascript': { language: 'javascript', version: '18.15.0' },
+      'python': { language: 'python', version: '3.10.0' },
+      'cpp': { language: 'c++', version: '10.2.0' },
+      'java': { language: 'java', version: '15.0.2' },
+      'c': { language: 'c', version: '10.2.0' }
+    };
+
+    const pistonConfig = languageMap[lang.toLowerCase()] || languageMap['javascript'];
+    const testCases = question.testCases || [];
+
+    try {
+      let passedAll = true;
+      let finalStdout = "";
+      let finalStderr = "";
+
+      // We will only execute the first visible test case for the "Run Code" preview
+      // To prevent cheating, we shouldn't show the output of hidden test cases here.
+      const visibleTestCases = testCases.filter(tc => !tc.isHidden);
+      const testCaseToRun = visibleTestCases.length > 0 ? visibleTestCases[0] : testCases[0];
+
+      if (testCaseToRun) {
+        const payload = {
+          language: pistonConfig.language,
+          version: pistonConfig.version,
+          files: [{ content: code }],
+          stdin: testCaseToRun.input || ""
+        };
+
+        const res = await fetch("/api/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.run) {
+          finalStdout = data.run.stdout || data.run.output;
+          finalStderr = data.run.stderr;
+
+          // Simple checking logic
+          const expected = testCaseToRun.output ? testCaseToRun.output.trim() : "";
+          const actual = finalStdout ? finalStdout.trim() : "";
+
+          if (expected && actual !== expected) {
+            passedAll = false;
+          }
+        } else {
+          finalStderr = data.message || "Execution failed";
+          passedAll = false;
+        }
+      }
+
+      setExecutionResults(prev => ({
+        ...prev,
+        [questionIndex]: {
+          stdout: finalStdout,
+          stderr: finalStderr,
+          status: passedAll ? "Passed Sample" : "Failed",
+          passedAll
+        }
+      }));
+
+    } catch (err) {
+      console.error("Code execution error:", err);
+      setExecutionResults(prev => ({
+        ...prev,
+        [questionIndex]: {
+          stdout: "",
+          stderr: "Failed to connect to execution server.",
+          status: "Error",
+          passedAll: false
+        }
+      }));
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const handleSubmitCode = async (questionIndex) => {
+    if (submitted || isSubmittingCode || isExecuting) return;
+
+    const question = quizContent[questionIndex];
+    if (question.type !== 'coding') return; // Should never happen unless UI bug
+
+    const code = codingAnswers[questionIndex] || "";
+    if (!code.trim()) {
+      alert("Please write some code before submitting.");
+      return;
+    }
+
+    setIsSubmittingCode(true);
+    const lang = codingLanguages[questionIndex] || (question.allowedLanguages && question.allowedLanguages[0]) || "javascript";
+    const languageMap = {
+      'javascript': { language: 'javascript', version: '18.15.0' },
+      'python': { language: 'python', version: '3.10.0' },
+      'cpp': { language: 'c++', version: '10.2.0' },
+      'java': { language: 'java', version: '15.0.2' },
+      'c': { language: 'c', version: '10.2.0' }
+    };
+    const pistonConfig = languageMap[lang.toLowerCase()] || languageMap['javascript'];
+    const testCases = question.testCases || [];
+
+    try {
+      let passedAll = true;
+      let finalStdout = "";
+      let finalStderr = "";
+      let statusStr = "All Tests Passed! ✅";
+
+      if (testCases.length === 0) {
+        statusStr = "No test cases configured.";
+        passedAll = false;
+      }
+
+      for (const tc of testCases) {
+        const payload = {
+          language: pistonConfig.language,
+          version: pistonConfig.version,
+          files: [{ content: code }],
+          stdin: tc.input || ""
+        };
+
+        const res = await fetch("/api/execute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.run) {
+          const actualOutput = (data.run.stdout || data.run.output || "").trim();
+          const expectedOutput = (tc.output || "").trim();
+
+          if (actualOutput !== expectedOutput) {
+            passedAll = false;
+            statusStr = `Failed Hidden Tests 🛑`;
+            if (!tc.isHidden) {
+              finalStdout = actualOutput;
+              finalStderr = `Visible Test Failed.\nExpected:\n${expectedOutput}\n\nGot:\n${actualOutput}`;
+            } else {
+              finalStdout = "";
+              finalStderr = "Code failed against one or more hidden constraints.";
+            }
+            break;
+          }
+        } else {
+          finalStderr = data.message || "Execution failed";
+          passedAll = false;
+          statusStr = "Error during execution.";
+          break;
+        }
+      }
+
+      if (passedAll) {
+        finalStdout = "Your code successfully passed all visible and hidden constraints!";
+        finalStderr = "";
+      }
+
+      setExecutionResults(prev => ({
+        ...prev,
+        [questionIndex]: {
+          stdout: finalStdout,
+          stderr: finalStderr,
+          status: statusStr,
+          passedAll
+        }
+      }));
+
+    } catch (err) {
+      console.error("Code submission error:", err);
+      setExecutionResults(prev => ({
+        ...prev,
+        [questionIndex]: {
+          stdout: "",
+          stderr: "Failed to connect to execution server.",
+          status: "Error",
+          passedAll: false
+        }
+      }));
+    } finally {
+      setIsSubmittingCode(false);
+    }
   };
 
   // Navigate to next question
@@ -463,13 +720,73 @@ export default function AttendTest() {
   const handleSubmit = async () => {
     if (submitted) return;
 
+    // Show evaluating UI
+    setLoading(true);
     let userScore = 0;
 
-    quizContent.forEach((q, index) => {
-      if (answers[index] === q.answer) {
-        userScore++;
+    // Use a Promise.all to evaluate all questions concurrently
+    await Promise.all(quizContent.map(async (q, index) => {
+      if (q.type === 'coding') {
+        const code = codingAnswers[index] || "";
+        const lang = codingLanguages[index] || (q.allowedLanguages && q.allowedLanguages[0]) || "javascript";
+
+        let passedAll = code.trim().length > 0; // Quick fail if empty
+
+        if (passedAll && q.testCases && q.testCases.length > 0) {
+          const languageMap = {
+            'javascript': { language: 'javascript', version: '18.15.0' },
+            'python': { language: 'python', version: '3.10.0' },
+            'cpp': { language: 'c++', version: '10.2.0' },
+            'java': { language: 'java', version: '15.0.2' },
+            'c': { language: 'c', version: '10.2.0' }
+          };
+          const pistonConfig = languageMap[lang.toLowerCase()] || languageMap['javascript'];
+
+          for (const tc of q.testCases) {
+            try {
+              const res = await fetch("/api/execute", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  language: pistonConfig.language,
+                  version: pistonConfig.version,
+                  files: [{ content: code }],
+                  stdin: tc.input || ""
+                })
+              });
+
+              const data = await res.json();
+              if (data.run) {
+                const stdout = (data.run.stdout || data.run.output || "").trim();
+                const expected = (tc.output || "").trim();
+                if (stdout !== expected) {
+                  passedAll = false;
+                  break; // Stop checking further test cases if one fails
+                }
+              } else {
+                passedAll = false;
+                break;
+              }
+            } catch (err) {
+              passedAll = false;
+              break;
+            }
+          }
+        } else {
+          passedAll = false; // No code or no tests
+        }
+
+        if (passedAll) {
+          userScore++;
+        }
+      } else {
+        if (answers[index] === q.answer) {
+          userScore++;
+        }
       }
-    });
+    }));
+
+    setLoading(false);
 
     setScore(userScore);
     setSubmitted(true);
@@ -484,6 +801,7 @@ export default function AttendTest() {
           name: user.firstName,
           email: user.primaryEmailAddress.emailAddress,
           answers,
+          codingAnswers, // Add coding answers
           score: userScore,
           quizId,
           warnings: warningLogs,
@@ -593,8 +911,8 @@ export default function AttendTest() {
   // Quiz Screen
   if (quizStarted && !submitted) {
     const currentQ = quizContent[currentQuestion];
-    const answeredCount = Object.keys(answers).length;
-    const isAnswered = answers[currentQuestion] !== undefined;
+    const answeredCount = Object.keys(answers).length + Object.keys(codingAnswers).filter(k => codingAnswers[k].trim().length > 0).length;
+    const isAnswered = currentQ.type === 'coding' ? (codingAnswers[currentQuestion] && codingAnswers[currentQuestion].trim().length > 0) : answers[currentQuestion] !== undefined;
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
@@ -633,42 +951,113 @@ export default function AttendTest() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm">
             {/* Question Title */}
-            <h2 className="text-2xl font-bold mb-8 leading-relaxed">{currentQ.question}</h2>
+            {currentQ.type === 'coding' ? (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4">{currentQ.title || "Coding Challenge"}</h2>
+                <div className="prose prose-invert max-w-none mb-6 text-slate-300" dangerouslySetInnerHTML={{ __html: currentQ.description }} />
 
-            {/* Options */}
-            <div className="space-y-3 mb-8">
-              {Object.entries(currentQ.options).map(([key, value]) => (
-                <label
-                  key={key}
-                  className={`block p-4 rounded-xl border-2 cursor-pointer transition transform hover:scale-102 ${answers[currentQuestion] === key
-                    ? 'border-blue-500 bg-blue-500/20'
-                    : 'border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50'
-                    }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion] === key
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-slate-400'
-                        }`}
-                    >
-                      {answers[currentQuestion] === key && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
+                <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+                  <div className="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                    <span className="text-sm font-medium text-slate-300">Code Editor</span>
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={codingLanguages[currentQuestion] || (currentQ.allowedLanguages && currentQ.allowedLanguages[0]) || "javascript"}
+                        onChange={(e) => handleLanguageChange(currentQuestion, e.target.value)}
+                        className="bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 outline-none focus:border-blue-500"
+                      >
+                        {(currentQ.allowedLanguages || ['javascript']).map(lang => (
+                          <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleRunCode(currentQuestion)}
+                        disabled={isExecuting}
+                        className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 rounded transition"
+                      >
+                        {isExecuting ? (
+                          <svg className="animate-spin w-3 h-3 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : <Play className="w-3 h-3" />}
+                        Run Test
+                      </button>
+                      <button
+                        onClick={() => handleSubmitCode(currentQuestion)}
+                        disabled={isExecuting || isSubmittingCode}
+                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 rounded transition"
+                      >
+                        Submit Code
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    value={codingAnswers[currentQuestion] || ""}
+                    onChange={(e) => handleCodeChange(currentQuestion, e.target.value)}
+                    placeholder="Write your solution here..."
+                    className="w-full h-80 bg-slate-900 text-emerald-400 font-mono text-sm p-4 focus:outline-none resize-y"
+                    spellCheck="false"
+                  />
+
+                  {/* Execution Results Terminal */}
+                  {executionResults[currentQuestion] && (
+                    <div className="border-t border-slate-700 bg-black p-4 font-mono text-xs">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-slate-400 font-bold">Output</span>
+                        <span className={executionResults[currentQuestion].passedAll ? 'text-emerald-400' : 'text-red-400'}>
+                          {executionResults[currentQuestion].status}
+                        </span>
+                      </div>
+
+                      {executionResults[currentQuestion].stderr ? (
+                        <pre className="text-red-400 whitespace-pre-wrap">{executionResults[currentQuestion].stderr}</pre>
+                      ) : (
+                        <pre className="text-slate-300 whitespace-pre-wrap">{executionResults[currentQuestion].stdout || "Program exited with no output."}</pre>
                       )}
                     </div>
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestion}`}
-                      value={key}
-                      checked={answers[currentQuestion] === key}
-                      onChange={() => handleAnswerChange(currentQuestion, key)}
-                      className="sr-only"
-                    />
-                    <span className="text-lg font-medium">{key.toUpperCase()}) {value}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold mb-8 leading-relaxed">{currentQ.question}</h2>
+
+                {/* Options */}
+                <div className="space-y-3 mb-8">
+                  {Object.entries(currentQ.options).map(([key, value]) => (
+                    <label
+                      key={key}
+                      className={`block p-4 rounded-xl border-2 cursor-pointer transition transform hover:scale-102 ${answers[currentQuestion] === key
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50'
+                        }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion] === key
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-slate-400'
+                            }`}
+                        >
+                          {answers[currentQuestion] === key && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                        <input
+                          type="radio"
+                          name={`question-${currentQuestion}`}
+                          value={key}
+                          checked={answers[currentQuestion] === key}
+                          onChange={() => handleAnswerChange(currentQuestion, key)}
+                          className="sr-only"
+                        />
+                        <span className="text-lg font-medium">{key.toUpperCase()}) {value}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* Navigation Buttons */}
             <div className="flex gap-4 justify-between">
@@ -687,7 +1076,7 @@ export default function AttendTest() {
                     onClick={() => setCurrentQuestion(index)}
                     className={`w-10 h-10 rounded-lg font-medium transition ${index === currentQuestion
                       ? 'bg-blue-600 text-white'
-                      : answers[index] !== undefined
+                      : (quizContent[index].type === 'coding' ? codingAnswers[index]?.trim().length > 0 : answers[index] !== undefined)
                         ? 'bg-emerald-600/50 text-emerald-200'
                         : 'bg-slate-700 text-slate-300'
                       }`}
