@@ -12,6 +12,10 @@ const response = new mongoose.Schema({
         type: Map,
         of: String
     },
+    codingAnswers: {
+        type: Map,
+        of: String
+    },
     score: {
         type: Number,
         required: true

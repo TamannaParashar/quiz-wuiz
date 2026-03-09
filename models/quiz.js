@@ -13,6 +13,20 @@ const newQuiz = new mongoose.Schema({
       answer: String
     }
   ],
+  codingQuestions: [
+    {
+      title: String,
+      description: String,
+      allowedLanguages: [String],
+      testCases: [
+        {
+          input: String,
+          output: String,
+          isHidden: Boolean
+        }
+      ]
+    }
+  ],
   time: Number,
   topic: String,
   allowNoise: {
