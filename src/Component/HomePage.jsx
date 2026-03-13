@@ -50,22 +50,47 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button
-            onClick={() => navigate("/createQuiz")}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
-          >
-            <GraduationCap className="w-5 h-5" />
-            Create Quiz
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <SignedIn>
+            <button
+              onClick={() => navigate("/createQuiz")}
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
+            >
+              <GraduationCap className="w-5 h-5" />
+              Create Quiz
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal" forceRedirectUrl="/createQuiz">
+              <button
+                className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
+              >
+                <GraduationCap className="w-5 h-5" />
+                Create Quiz
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </SignInButton>
+          </SignedOut>
 
-          <button
-            onClick={() => navigate("/attendQuiz")}
-            className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
-          >
-            <BookOpen className="w-5 h-5" />
-            Attend Quiz
-          </button>
+          <SignedIn>
+            <button
+              onClick={() => navigate("/attendQuiz")}
+              className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
+            >
+              <BookOpen className="w-5 h-5" />
+              Attend Quiz
+            </button>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal" forceRedirectUrl="/attendQuiz">
+              <button
+                className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
+              >
+                <BookOpen className="w-5 h-5" />
+                Attend Quiz
+              </button>
+            </SignInButton>
+          </SignedOut>
         </div>
       </section>
 

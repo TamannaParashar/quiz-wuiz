@@ -191,3 +191,12 @@
     transform: translateY(0);
   }
 }
+
+/* Force hide the floating Clerk Development Mode Badge */
+div[style*="bottom: 12px"][style*="left: 12px"],
+div[style*="bottom: 12px"][style*="right: 12px"] {
+  display: none !important;
+}
+.cl-internal-1dauvpw, .cl-internal-b3al4t, .cl-internal-bfhlnd {
+  display: none !important;
+}
