@@ -19,10 +19,11 @@ const VerificationGate = ({ onVerificationSuccess }) => {
 
     const loadModels = async () => {
         try {
+            const modelUrl = import.meta.env.BASE_URL ? `${import.meta.env.BASE_URL}models`.replace('//', '/') : '/models';
             await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+                faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl),
+                faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
+                faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
             ]);
         } catch (err) {
             console.error("Error loading face-api models", err);
