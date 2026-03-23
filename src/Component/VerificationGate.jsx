@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import * as faceapi from '@vladmandic/face-api';
 import { useUser } from '@clerk/clerk-react';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const VerificationGate = ({ onVerificationSuccess }) => {
     const { user } = useUser();
@@ -31,7 +32,7 @@ const VerificationGate = ({ onVerificationSuccess }) => {
 
     const checkUserSetup = async (email) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/user/${email}`);
+            const res = await fetch(`${backendUrl}/api/user/${email}`);
             const data = await res.json();
 
             if (data && data.referencePhotoUrl) {
@@ -64,7 +65,7 @@ const VerificationGate = ({ onVerificationSuccess }) => {
         formData.append('name', user.fullName || "User");
 
         try {
-            const res = await fetch('http://localhost:5000/api/upload-reference', {
+            const res = await fetch(`${backendUrl}/api/upload-reference`, {
                 method: 'POST',
                 body: formData,
             });

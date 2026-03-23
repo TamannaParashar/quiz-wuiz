@@ -18,7 +18,7 @@ export default function Certificate() {
     const getCertificateDetails = async () => {
       try {
         const email = user.primaryEmailAddress.emailAddress;
-        const details = await fetch(`/api/getDetails?email=${email}`);
+        const details = await fetch(`${backendUrl}/api/getDetails?email=${email}`);
         const res = await details.json();
         if (!res || res.length == 0) {
           alert('No quiz attempted');
@@ -28,7 +28,7 @@ export default function Certificate() {
         setQuizId(lastAttempt.quizId);
         setParticipantName(lastAttempt.name);
         setScore(lastAttempt.score);
-        const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
+        const quizRes = await fetch(`${backendUrl}/api/getTest/${lastAttempt.quizId}`);
         const quizData = await quizRes.json();
         setQuizTitle(quizData.topic);
         if (quizData.content) {

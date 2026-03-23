@@ -36,7 +36,7 @@ export default function CreateQuiz() {
     }
     setGeneratingTestCases(true);
     try {
-      const res = await fetch('/api/generate-testcases', {
+      const res = await fetch(`${backendUrl}/api/generate-testcases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function CreateQuiz() {
       formData.append('pdf', pdf);
     }
     try {
-      const res = await fetch('/api/generate-quiz', {
+      const res = await fetch(`${backendUrl}/api/generate-quiz`, {
         method: 'POST',
         body: formData,
       });

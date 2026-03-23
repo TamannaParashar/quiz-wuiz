@@ -10,6 +10,8 @@ import * as handpose from '@tensorflow-models/handpose';
 import VerificationGate from './VerificationGate';
 import { Play } from 'lucide-react'; // Added Play icon
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 export default function AttendTest() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -279,7 +281,7 @@ export default function AttendTest() {
 
     try {
       const checkRes = await fetch(
-        `/api/checkAttempt/${extractedId}?email=${encodeURIComponent(
+        `${backendUrl}/api/checkAttempt/${extractedId}?email=${encodeURIComponent(
           user.primaryEmailAddress.emailAddress
         )}`
       );
@@ -291,7 +293,7 @@ export default function AttendTest() {
       }
 
       // We need to fetch test data FIRST to know if we need microphone permissions
-      const initialRes = await fetch(`/api/getTest/${extractedId}`);
+      const initialRes = await fetch(`${backendUrl}/api/getTest/${extractedId}`);
       const initialData = await initialRes.json();
 
       if (initialData.error) {
@@ -413,7 +415,7 @@ export default function AttendTest() {
     localStorage.removeItem(`quizData_${currentQuizId}`);
 
     try {
-      await fetch('/api/addResponse', {
+      await fetch(`${backendUrl}/api/addResponse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -545,7 +547,7 @@ export default function AttendTest() {
           stdin: testCaseToRun.input || ""
         };
 
-        const res = await fetch("/api/execute", {
+        const res = await fetch(`${backendUrl}/api/execute`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -639,7 +641,7 @@ export default function AttendTest() {
           stdin: tc.input || ""
         };
 
-        const res = await fetch("/api/execute", {
+        const res = await fetch(`${backendUrl}/api/execute`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -744,7 +746,7 @@ export default function AttendTest() {
 
           for (const tc of q.testCases) {
             try {
-              const res = await fetch("/api/execute", {
+              const res = await fetch(`${backendUrl}/api/execute`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -792,7 +794,7 @@ export default function AttendTest() {
     setSubmitted(true);
 
     try {
-      await fetch('/api/addResponse', {
+      await fetch(`${backendUrl}/api/addResponse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -815,7 +817,7 @@ export default function AttendTest() {
   // Load Leaderboard
   const loadLeaderboard = async () => {
     try {
-      const res = await fetch(`/api/leaderboard/${quizId}`);
+      const res = await fetch(`${backendUrl}/api/leaderboard/${quizId}`);
       const data = await res.json();
       setTopUsers(data);
       setShowLeaderboard(true);

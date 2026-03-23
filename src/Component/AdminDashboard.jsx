@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser, RedirectToSignIn } from '@clerk/clerk-react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import ReportDetails from './ReportDetails';
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const AdminDashboard = () => {
     const { user, isLoaded, isSignedIn } = useUser();
@@ -20,7 +21,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchReports = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/admin/reports');
+                const res = await fetch(`${backendUrl}/api/admin/reports`);
                 const data = await res.json();
                 setReports(data);
             } catch (err) {
