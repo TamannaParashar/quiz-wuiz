@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import * as faceapi from '@vladmandic/face-api';
 import { useUser } from '@clerk/clerk-react';
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const VerificationGate = ({ onVerificationSuccess }) => {
     const { user } = useUser();
@@ -19,11 +18,10 @@ const VerificationGate = ({ onVerificationSuccess }) => {
 
     const loadModels = async () => {
         try {
-            const modelUrl = import.meta.env.BASE_URL ? `${import.meta.env.BASE_URL}models`.replace('//', '/') : '/models';
             await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl),
-                faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
-                faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+                faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
             ]);
         } catch (err) {
             console.error("Error loading face-api models", err);
@@ -33,7 +31,7 @@ const VerificationGate = ({ onVerificationSuccess }) => {
 
     const checkUserSetup = async (email) => {
         try {
-            const res = await fetch(`${backendUrl}/api/user/${email}`);
+            const res = await fetch(`http://localhost:5000/api/user/${email}`);
             const data = await res.json();
 
             if (data && data.referencePhotoUrl) {
@@ -66,7 +64,7 @@ const VerificationGate = ({ onVerificationSuccess }) => {
         formData.append('name', user.fullName || "User");
 
         try {
-            const res = await fetch(`${backendUrl}/api/upload-reference`, {
+            const res = await fetch('http://localhost:5000/api/upload-reference', {
                 method: 'POST',
                 body: formData,
             });
