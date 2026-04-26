@@ -10,8 +10,6 @@ import * as handpose from '@tensorflow-models/handpose';
 import VerificationGate from './VerificationGate';
 import { Play } from 'lucide-react'; // Added Play icon
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
 export default function AttendTest() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -41,6 +39,20 @@ export default function AttendTest() {
   const [quizStarted, setQuizStarted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  // Restore results from sessionStorage when navigating back from certificate
+  useEffect(() => {
+    const savedResults = sessionStorage.getItem('quizResults');
+    if (savedResults) {
+      const { savedScore, savedQuizContent, savedPassPercentage, savedQuizId } = JSON.parse(savedResults);
+      setScore(savedScore);
+      setQuizContent(savedQuizContent);
+      setPassPercentage(savedPassPercentage);
+      setQuizId(savedQuizId);
+      setSubmitted(true);
+      setQuizStarted(true);
+    }
+  }, []);
   const [topUsers, setTopUsers] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
@@ -281,7 +293,7 @@ export default function AttendTest() {
 
     try {
       const checkRes = await fetch(
-        `${backendUrl}/api/checkAttempt/${extractedId}?email=${encodeURIComponent(
+        `/api/checkAttempt/${extractedId}?email=${encodeURIComponent(
           user.primaryEmailAddress.emailAddress
         )}`
       );
@@ -293,7 +305,7 @@ export default function AttendTest() {
       }
 
       // We need to fetch test data FIRST to know if we need microphone permissions
-      const initialRes = await fetch(`${backendUrl}/api/getTest/${extractedId}`);
+      const initialRes = await fetch(`/api/getTest/${extractedId}`);
       const initialData = await initialRes.json();
 
       if (initialData.error) {
@@ -415,7 +427,7 @@ export default function AttendTest() {
     localStorage.removeItem(`quizData_${currentQuizId}`);
 
     try {
-      await fetch(`${backendUrl}/api/addResponse`, {
+      await fetch('/api/addResponse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -547,7 +559,7 @@ export default function AttendTest() {
           stdin: testCaseToRun.input || ""
         };
 
-        const res = await fetch(`${backendUrl}/api/execute`, {
+        const res = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -641,7 +653,7 @@ export default function AttendTest() {
           stdin: tc.input || ""
         };
 
-        const res = await fetch(`${backendUrl}/api/execute`, {
+        const res = await fetch("/api/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -746,7 +758,7 @@ export default function AttendTest() {
 
           for (const tc of q.testCases) {
             try {
-              const res = await fetch(`${backendUrl}/api/execute`, {
+              const res = await fetch("/api/execute", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -793,8 +805,16 @@ export default function AttendTest() {
     setScore(userScore);
     setSubmitted(true);
 
+    // Persist results so navigating back from certificate restores this screen
+    sessionStorage.setItem('quizResults', JSON.stringify({
+      savedScore: userScore,
+      savedQuizContent: quizContent,
+      savedPassPercentage: passPercentage,
+      savedQuizId: quizId,
+    }));
+
     try {
-      await fetch(`${backendUrl}/api/addResponse`, {
+      await fetch('/api/addResponse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -817,7 +837,7 @@ export default function AttendTest() {
   // Load Leaderboard
   const loadLeaderboard = async () => {
     try {
-      const res = await fetch(`${backendUrl}/api/leaderboard/${quizId}`);
+      const res = await fetch(`/api/leaderboard/${quizId}`);
       const data = await res.json();
       setTopUsers(data);
       setShowLeaderboard(true);
@@ -1172,16 +1192,18 @@ export default function AttendTest() {
             {/* Action Buttons */}
             <div className="flex gap-4 justify-center">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => { sessionStorage.removeItem('quizResults'); navigate('/'); }}
                 className="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition">
                 Back Home
               </button>
 
-              <button
-                onClick={() => navigate('/certificate')}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-lg font-medium transition transform hover:scale-105">
-                Download Certificate
-              </button>
+              {percentage >= passPercentage && (
+                <button
+                  onClick={() => navigate('/certificate')}
+                  className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-lg font-medium transition transform hover:scale-105">
+                  Download Certificate
+                </button>
+              )}
 
               <button
                 onClick={loadLeaderboard}
