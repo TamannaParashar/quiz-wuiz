@@ -315,6 +315,37 @@ app.get('/api/getDetails', async (req, res) => {
   return res.json(certificateDetails)
 })
 
+// Fetch a single quiz response by responseId (for specific certificate view)
+app.get('/api/certificate/:responseId', async (req, res) => {
+  try {
+    const response = await quizResponse.findById(req.params.responseId);
+    if (!response) {
+      return res.status(404).json({ error: 'Certificate not found' });
+    }
+
+    // Enrich with quiz data
+    const quiz = await Quiz.findById(response.quizId);
+    const totalQuestions = quiz
+      ? (quiz.content?.length || 0) + (quiz.codingQuestions?.length || 0)
+      : 0;
+
+    return res.json({
+      _id: response._id,
+      name: response.name,
+      email: response.email,
+      score: response.score,
+      quizId: response.quizId,
+      createdAt: response.createdAt,
+      topic: quiz ? quiz.topic : 'Unknown Topic',
+      totalQuestions,
+      passPercentage: quiz ? (quiz.passPercentage || 70) : 70,
+    });
+  } catch (err) {
+    console.error('Error fetching certificate:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+})
+
 // Local Code Execution Endpoint
 app.post('/api/execute', async (req, res) => {
   const language = req.body.language;

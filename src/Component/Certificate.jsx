@@ -1,52 +1,121 @@
 import { useUser } from "@clerk/clerk-react";
-import { useState, useEffect } from "react"
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function Certificate() {
   const { user } = useUser();
+  const { responseId } = useParams(); // present when navigated from /certificate/:responseId
+  const navigate = useNavigate();
+
   const [participantName, setParticipantName] = useState("");
   const [score, setScore] = useState("");
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [quizTitle, setQuizTitle] = useState("");
   const [quizId, setQuizId] = useState();
   const [date] = useState(new Date().toLocaleDateString());
-  const CEO = "Tamanna Parashar"
+  const [certDate, setCertDate] = useState(new Date().toLocaleDateString());
+  const CEO = "Tamanna Parashar";
 
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!user) return;
+
     const getCertificateDetails = async () => {
       try {
         const email = user.primaryEmailAddress.emailAddress;
-        const details = await fetch(`/api/getDetails?email=${email}`);
-        const res = await details.json();
-        if (!res || res.length == 0) {
-          alert('No quiz attempted');
-          return;
-        }
-        const lastAttempt = res[res.length - 1];
-        setQuizId(lastAttempt.quizId);
-        setParticipantName(lastAttempt.name);
-        setScore(lastAttempt.score);
-        const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
-        const quizData = await quizRes.json();
-        setQuizTitle(quizData.topic);
-        if (quizData.content) {
-          setTotalQuestions(quizData.content.length);
+
+        if (responseId) {
+          // Specific certificate by response ID
+          const res = await fetch(`/api/certificate/${responseId}`);
+          if (!res.ok) {
+            setError("Certificate not found or you don't have access to it.");
+            return;
+          }
+          const data = await res.json();
+          setParticipantName(data.name);
+          setScore(data.score);
+          setQuizId(data.quizId);
+          setQuizTitle(data.topic || "Unknown Topic");
+          setTotalQuestions(data.totalQuestions || 0);
+          if (data.createdAt) {
+            setCertDate(
+              new Date(data.createdAt).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            );
+          }
+        } else {
+          // Fallback: use last attempt (original behaviour)
+          const details = await fetch(`/api/getDetails?email=${email}`);
+          const res = await details.json();
+          if (!res || res.length === 0) {
+            setError("No quiz attempted yet.");
+            return;
+          }
+          const lastAttempt = res[res.length - 1];
+          setQuizId(lastAttempt.quizId);
+          setParticipantName(lastAttempt.name);
+          setScore(lastAttempt.score);
+          const quizRes = await fetch(`/api/getTest/${lastAttempt.quizId}`);
+          const quizData = await quizRes.json();
+          setQuizTitle(quizData.topic);
+          if (quizData.content) {
+            setTotalQuestions(quizData.content.length);
+          }
+          if (lastAttempt.createdAt) {
+            setCertDate(
+              new Date(lastAttempt.createdAt).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            );
+          }
         }
       } catch (err) {
-        console.log('Failed to get user details', err);
+        console.log("Failed to get user details", err);
+        setError("Failed to load certificate details.");
       }
-    }
+    };
 
     getCertificateDetails();
 
-    const timer = setTimeout(() => setIsVisible(true), 100)
-    return () => clearTimeout(timer)
-  }, [user])
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, [user, responseId]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-4 text-white">
+        <p className="text-red-400 text-lg">{error}</p>
+        <button
+          onClick={() => navigate("/my-certificates")}
+          className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
+        >
+          Back to My Certificates
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-2 sm:p-4 lg:p-8">
+      {/* Back button (only when opened from my-certificates) */}
+      {responseId && (
+        <button
+          onClick={() => navigate("/my-certificates")}
+          className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-slate-400 hover:text-white transition z-50 group print:hidden"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          My Certificates
+        </button>
+      )}
+
       <div
         className={`
           relative w-full max-w-6xl bg-gradient-to-br from-slate-800 via-gray-800 to-slate-900 
@@ -80,7 +149,8 @@ export default function Certificate() {
               </div>
               <div className="text-center sm:text-left">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                  Quiz-<span className="text-emerald-400">W</span>u<span className="text-emerald-400">i</span>z
+                  Quiz-<span className="text-emerald-400">W</span>u
+                  <span className="text-emerald-400">i</span>z
                 </h1>
                 <p className="text-emerald-300 text-sm sm:text-base lg:text-lg font-medium">
                   AI-Integrated Smart Quiz Platform
@@ -97,7 +167,9 @@ export default function Certificate() {
               <h2 className="text-2xl sm:text-3xl lg:text-5xl font-serif text-emerald-400 mb-2 sm:mb-4 tracking-wide">
                 Certificate of Participation
               </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-300 font-light">This is to certify that</p>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300 font-light">
+                This is to certify that
+              </p>
             </div>
 
             <div className="space-y-3 sm:space-y-4 lg:space-y-6">
@@ -109,13 +181,20 @@ export default function Certificate() {
               </div>
 
               <p className="text-sm sm:text-lg lg:text-xl text-gray-300 max-w-xs sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-2">
-                has successfully participated in quiz on<br className="hidden sm:block" />
+                has successfully participated in quiz on
+                <br className="hidden sm:block" />
                 <span className="text-emerald-400 font-semibold break-words">{quizTitle}</span>
-                <br className="hidden sm:block" /><span className="block sm:inline">and demonstrated excellence in AI-powered learning</span></p>
+                <br className="hidden sm:block" />
+                <span className="block sm:inline">and demonstrated excellence in AI-powered learning</span>
+              </p>
 
               <div className="inline-block bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-400/30 mx-2">
                 <p className="text-lg sm:text-xl lg:text-2xl text-emerald-400 font-bold">
-                  Score: {totalQuestions > 0 ? Math.round((parseInt(score) / totalQuestions) * 100) : 0}%
+                  Score:{" "}
+                  {totalQuestions > 0
+                    ? Math.round((parseInt(score) / totalQuestions) * 100)
+                    : 0}
+                  %
                 </p>
               </div>
             </div>
@@ -124,14 +203,18 @@ export default function Certificate() {
           {/* Footer Section */}
           <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end space-y-4 sm:space-y-0 mt-4 sm:mt-0">
             <div className="text-center sm:text-left order-2 sm:order-1">
-              <p className="text-gray-400 text-sm sm:text-base lg:text-lg mb-1 sm:mb-2">Date of Completion</p>
-              <p className="text-emerald-400 text-lg sm:text-xl lg:text-2xl font-semibold">{date}</p>
+              <p className="text-gray-400 text-sm sm:text-base lg:text-lg mb-1 sm:mb-2">
+                Date of Completion
+              </p>
+              <p className="text-emerald-400 text-lg sm:text-xl lg:text-2xl font-semibold">
+                {certDate}
+              </p>
             </div>
 
             <div className="text-center order-1 sm:order-2">
               <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 mb-2 sm:mb-4 shadow-lg inline-block">
                 <img
-                  src="sign.png"
+                  src="/sign.png"
                   alt="CEO Signature"
                   className="w-20 h-10 sm:w-24 sm:h-12 lg:w-32 lg:h-16 object-contain"
                   style={{
@@ -141,11 +224,16 @@ export default function Certificate() {
                 />
               </div>
               <div className="border-t-2 border-emerald-400/50 pt-2 min-w-[150px] sm:min-w-[180px] lg:min-w-[200px]">
-                <p className="text-emerald-400 text-base sm:text-lg lg:text-xl font-semibold break-words">{CEO}</p>
-                <p className="text-gray-400 text-xs sm:text-sm font-medium">Chief Executive Officer</p>
+                <p className="text-emerald-400 text-base sm:text-lg lg:text-xl font-semibold break-words">
+                  {CEO}
+                </p>
+                <p className="text-gray-400 text-xs sm:text-sm font-medium">
+                  Chief Executive Officer
+                </p>
               </div>
             </div>
           </div>
+
           <p className="text-white text-center m-4">ID : {quizId}</p>
         </div>
 
@@ -162,9 +250,14 @@ export default function Certificate() {
 
       <button
         onClick={() => window.print()}
-        className="absolute top-2 sm:top-4 lg:top-8 right-2 sm:right-4 lg:right-8 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg lg:rounded-xl font-medium transition-all duration-200 flex items-center space-x-1 sm:space-x-2 shadow-lg hover:shadow-xl text-sm sm:text-base"
+        className="absolute top-2 sm:top-4 lg:top-8 right-2 sm:right-4 lg:right-8 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg lg:rounded-xl font-medium transition-all duration-200 flex items-center space-x-1 sm:space-x-2 shadow-lg hover:shadow-xl text-sm sm:text-base print:hidden"
       >
-        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4 sm:w-5 sm:h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -172,8 +265,8 @@ export default function Certificate() {
             d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
           />
         </svg>
-        <span className="hidden sm:inline">Print</span>
+        <span className="hidden sm:inline">Print / Download</span>
       </button>
     </div>
-  )
+  );
 }

@@ -8,6 +8,7 @@ import Home from './Component/HomePage'
 import { Routes, Route } from 'react-router-dom'
 import Certificate from './Component/Certificate'
 import AdminDashboard from './Component/AdminDashboard'
+import MyCertificates from './Component/MyCertificates'
 
 function App() {
   return (
@@ -24,10 +25,12 @@ function App() {
         <Route path='/generatedQuiz' element={<GeneratedQuiz />}></Route>
         <Route path='/attendQuiz' element={<><SignedIn><AttendTest /></SignedIn><SignedOut><RedirectToSignIn signInFallbackRedirectUrl="/attendQuiz" /></SignedOut></>}></Route>
         <Route path='/certificate' element={<Certificate />}></Route>
+        <Route path='/certificate/:responseId' element={<Certificate />}></Route>
+        <Route path='/my-certificates' element={<><SignedIn><MyCertificates /></SignedIn><SignedOut><RedirectToSignIn signInFallbackRedirectUrl="/my-certificates" /></SignedOut></>}></Route>
         <Route path='/admin' element={<AdminDashboard />}></Route>
       </Routes>
 
     </div>
   )
 }
-export default App
+export default App

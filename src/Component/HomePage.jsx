@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/clerk-react"
-import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight } from "lucide-react"
+import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight, Award } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 export default function Home() {
@@ -40,7 +40,7 @@ export default function Home() {
         <h2 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight mb-6">
           AI-Powered
           <span className="block bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-            Smart Quiz Platform
+            Smart Assessment Platform
           </span>
         </h2>
 
@@ -56,7 +56,7 @@ export default function Home() {
               className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
             >
               <GraduationCap className="w-5 h-5" />
-              Create Quiz
+              Create Test
               <ChevronRight className="w-4 h-4" />
             </button>
           </SignedIn>
@@ -66,7 +66,7 @@ export default function Home() {
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 border hover:border-black transition-all shadow-lg shadow-emerald-500/20 font-medium flex items-center justify-center gap-2 text-black"
               >
                 <GraduationCap className="w-5 h-5" />
-                Create Quiz
+                Create Test
                 <ChevronRight className="w-4 h-4" />
               </button>
             </SignInButton>
@@ -78,7 +78,18 @@ export default function Home() {
               className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
             >
               <BookOpen className="w-5 h-5" />
-              Attend Quiz
+              Attend Test
+            </button>
+          </SignedIn>
+
+          <SignedIn>
+            <button
+              id="my-certificates-btn"
+              onClick={() => navigate("/my-certificates")}
+              className="px-8 py-3 rounded-xl border border-slate-700 hover:border-emerald-400 hover:text-emerald-300 transition-all font-medium flex items-center justify-center gap-2"
+            >
+              <Award className="w-5 h-5" />
+              My Certificates
             </button>
           </SignedIn>
           <SignedOut>
@@ -87,7 +98,7 @@ export default function Home() {
                 className="px-8 py-3 rounded-xl border border-slate-700 hover:border-cyan-400 hover:text-white transition-all font-medium flex items-center justify-center gap-2"
               >
                 <BookOpen className="w-5 h-5" />
-                Attend Quiz
+                Attend Test
               </button>
             </SignInButton>
           </SignedOut>
