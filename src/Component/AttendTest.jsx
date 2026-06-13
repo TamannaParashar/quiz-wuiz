@@ -71,6 +71,12 @@ export default function AttendTest() {
   const [allowHandGestures, setAllowHandGestures] = useState(false);
   const [passPercentage, setPassPercentage] = useState(70);
 
+  // Notebook verification state
+  const [showNotebookPrompt, setShowNotebookPrompt] = useState(false);
+  const [hasVerifiedNotebook, setHasVerifiedNotebook] = useState(false);
+  const [notebookDetectionError, setNotebookDetectionError] = useState("");
+  const [tempQuizData, setTempQuizData] = useState(null);
+
   const issueWarning = (reason) => {
     if (isAlertOpen.current) return;
     const now = Date.now();
@@ -107,6 +113,8 @@ export default function AttendTest() {
   useEffect(() => {
     if (!quizStarted || submitted) return;
 
+    const startTime = Date.now();
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         issueWarning("You moved away from the exam tab!");
@@ -114,6 +122,13 @@ export default function AttendTest() {
     };
 
     const handleBlur = () => {
+      // 1. Ignore blur events during the first 5 seconds of the quiz starting (initialization grace period)
+      if (Date.now() - startTime < 5000) return;
+
+      // 2. Ignore blur events if another alert is active, or was closed less than 2 seconds ago
+      if (isAlertOpen.current) return;
+      if (Date.now() - lastWarningTime.current < 2000) return;
+
       issueWarning("Exam window lost focus!");
     };
 
@@ -128,7 +143,7 @@ export default function AttendTest() {
 
   // Proctoring: Camera & ML Model Initialization
   useEffect(() => {
-    if (!quizStarted || submitted) return;
+    if ((!quizStarted && !showNotebookPrompt) || submitted) return;
 
     let requestAnimationFrameId;
 
@@ -191,7 +206,7 @@ export default function AttendTest() {
         tracks.forEach(track => track.stop());
       }
     };
-  }, [quizStarted, submitted, allowNoise, allowHandGestures]);
+  }, [quizStarted, showNotebookPrompt, submitted, allowNoise, allowHandGestures]);
 
   // Proctoring: Object Detection Loop
   useEffect(() => {
@@ -205,6 +220,7 @@ export default function AttendTest() {
           const predictions = await modelRef.current.detect(videoRef.current);
           const cellPhoneDetected = predictions.some(p => p.class === 'cell phone' && p.score > 0.6);
           const personCount = predictions.filter(p => p.class === 'person' && p.score > 0.6).length;
+          const bookDetected = predictions.some(p => p.class === 'book' && p.score > 0.6);
 
           if (cellPhoneDetected) {
             issueWarning("Cell phone detected in camera frame!");
@@ -214,6 +230,9 @@ export default function AttendTest() {
           }
           if (personCount === 0) {
             issueWarning("No person detected in camera frame! Please stay visible.");
+          }
+          if (bookDetected && !hasVerifiedNotebook) {
+            issueWarning("Unverified book/notebook detected in camera frame!");
           }
         } catch (err) {
           // ignore transient detection errors
@@ -278,7 +297,7 @@ export default function AttendTest() {
     return () => {
       if (requestAnimationFrameId) cancelAnimationFrame(requestAnimationFrameId);
     };
-  }, [quizStarted, submitted, isCameraReady, allowNoise, allowHandGestures]);
+  }, [quizStarted, submitted, isCameraReady, allowNoise, allowHandGestures, hasVerifiedNotebook]);
 
   // Start Test
   const handleTest = async () => {
@@ -379,6 +398,7 @@ export default function AttendTest() {
           setCodingAnswers(savedSession.codingAnswers || {});
           setWarningLogs(savedSession.warningLogs || []);
           setCheatWarnings(savedSession.cheatWarnings || 0);
+          setHasVerifiedNotebook(savedSession.hasVerifiedNotebook || false);
           setQuizStarted(true);
           setCurrentQuestion(0);
           setLoading(false);
@@ -400,17 +420,121 @@ export default function AttendTest() {
         });
       }
 
-      setQuizContent(fullContent);
-      setCodingLanguages(initialCodingLanguages);
-      setCodingAnswers(initialCodingAnswers);
-      setTimeLeft(initialData.time * 60);
-      setQuizStarted(true);
-      setCurrentQuestion(0);
+      setTempQuizData({
+        fullContent,
+        initialCodingLanguages,
+        initialCodingAnswers,
+        timeLeft: initialData.time * 60,
+        quizId: extractedId
+      });
+      setShowNotebookPrompt(true);
     } catch (err) {
       console.error('Error loading quiz:', err);
     }
 
     setLoading(false);
+  };
+
+  const startQuiz = (verified) => {
+    setHasVerifiedNotebook(verified);
+    setQuizContent(tempQuizData.fullContent);
+    setCodingLanguages(tempQuizData.initialCodingLanguages);
+    setCodingAnswers(tempQuizData.initialCodingAnswers);
+    setTimeLeft(tempQuizData.timeLeft);
+    setQuizStarted(true);
+    setShowNotebookPrompt(false);
+    setNotebookDetectionError("");
+  };
+
+  const handleVerifyNotebook = async () => {
+    if (!modelRef.current || !videoRef.current) {
+      setNotebookDetectionError("AI models or camera stream are still loading. Please wait.");
+      return;
+    }
+    setNotebookDetectionError("");
+    try {
+      const predictions = await modelRef.current.detect(videoRef.current);
+      const bookPrediction = predictions.find(p => p.class === 'book' && p.score > 0.4);
+      
+      let x = 0, y = 0, width = 0, height = 0;
+      let usingCenterFallback = false;
+
+      const videoWidth = videoRef.current.videoWidth || 320;
+      const videoHeight = videoRef.current.videoHeight || 240;
+
+      if (bookPrediction) {
+        // Use detected book bounding box
+        [x, y, width, height] = bookPrediction.bbox;
+      } else {
+        // Fallback: Crop the center 70% of the camera frame
+        usingCenterFallback = true;
+        width = Math.round(videoWidth * 0.7);
+        height = Math.round(videoHeight * 0.7);
+        x = Math.round((videoWidth - width) / 2);
+        y = Math.round((videoHeight - height) / 2);
+      }
+
+      // Safe bounds clamping
+      x = Math.max(0, Math.min(x, videoWidth - 1));
+      y = Math.max(0, Math.min(y, videoHeight - 1));
+      width = Math.max(1, Math.min(width, videoWidth - x));
+      height = Math.max(1, Math.min(height, videoHeight - y));
+
+      // Create offscreen canvas for edge-density texture analysis
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const scanWidth = 300;
+      const scanHeight = 300;
+      canvas.width = scanWidth;
+      canvas.height = scanHeight;
+
+      // Draw cropped notebook region onto offscreen canvas
+      ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, scanWidth, scanHeight);
+      const imgData = ctx.getImageData(0, 0, scanWidth, scanHeight);
+      const data = imgData.data;
+
+      let edgeCount = 0;
+      // Run contrast gradient scanning (filtering out uniform paper background)
+      for (let row = 1; row < scanHeight - 1; row++) {
+        for (let col = 1; col < scanWidth - 1; col++) {
+          const idx = (row * scanWidth + col) * 4;
+          const current = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+          const right = (data[idx + 4] + data[idx + 5] + data[idx + 6]) / 3;
+          const bottom = (data[idx + (scanWidth * 4)] + data[idx + (scanWidth * 4) + 1] + data[idx + (scanWidth * 4) + 2]) / 3;
+
+          const dx = Math.abs(current - right);
+          const dy = Math.abs(current - bottom);
+
+          // A threshold of 15 captures fine pencil and ink marks
+          if (dx > 15 || dy > 15) {
+            edgeCount++;
+          }
+        }
+      }
+
+      const totalPixels = (scanWidth - 2) * (scanHeight - 2);
+      const edgeDensity = (edgeCount / totalPixels) * 100;
+      console.log("Verified Notebook Edge Density:", edgeDensity, "Using fallback:", usingCenterFallback);
+
+      // If edge density is extremely low, it represents a blank notebook page
+      if (edgeDensity < 1.0) {
+        alert("Notebook successfully verified! Please keep it flat on your desk and visible to the camera.");
+        startQuiz(true);
+      } else {
+        if (usingCenterFallback) {
+          setNotebookDetectionError(
+            `Writing or details detected (Edge Density: ${edgeDensity.toFixed(2)}%). Please hold a completely clean, blank page closer to the camera to cover your face/background.`
+          );
+        } else {
+          setNotebookDetectionError(
+            `This page is not blank (writing detected! Edge Density: ${edgeDensity.toFixed(2)}%). Please flip to a clean, blank page and try again.`
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Error during notebook verification:", err);
+      setNotebookDetectionError("Error during detection. Please try again.");
+    }
   };
 
   // Helper to submit without relying completely on component state during an auto-submit scenario
@@ -440,6 +564,7 @@ export default function AttendTest() {
           score: userScore,
           quizId: currentQuizId,
           warnings: warnings,
+          hasVerifiedNotebook: hasVerifiedNotebook,
         }),
       });
     } catch (err) {
@@ -469,6 +594,7 @@ export default function AttendTest() {
           warningLogs,
           cheatWarnings,
           score,
+          hasVerifiedNotebook,
           lastActiveTimestamp: Date.now()
         };
         localStorage.setItem(`quizData_${quizId}`, JSON.stringify(sessionData));
@@ -827,6 +953,7 @@ export default function AttendTest() {
           score: userScore,
           quizId,
           warnings: warningLogs,
+          hasVerifiedNotebook: hasVerifiedNotebook,
         }),
       });
     } catch (err) {
@@ -852,6 +979,79 @@ export default function AttendTest() {
   // Verification Screen
   if (!isVerified) {
     return <VerificationGate onVerificationSuccess={() => setIsVerified(true)} />;
+  }
+
+  // Notebook Setup/Verification Screen
+  if (showNotebookPrompt) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 flex items-center justify-center relative overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-xl w-full">
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700 rounded-3xl p-8 backdrop-blur-sm text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 animate-pulse">
+                📝
+              </div>
+              <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                Notebook / Scratchpad Setup
+              </h2>
+              <p className="text-slate-300 text-sm">
+                If you plan to use a notebook or scratchpad for calculations, you must verify it by holding up a blank page to the camera.
+              </p>
+            </div>
+
+            {/* Video Preview */}
+            <div className="rounded-2xl overflow-hidden border-2 border-slate-700 mb-6 bg-black relative aspect-video max-w-sm mx-auto shadow-2xl">
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              {!isCameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400 bg-black/80">
+                  Initializing camera & AI models...
+                </div>
+              )}
+            </div>
+
+            {/* Verification Status */}
+            {notebookDetectionError && (
+              <div className="bg-red-950/40 border border-red-800 rounded-xl p-3 mb-6 text-red-400 text-xs flex items-center justify-center gap-2">
+                <span>⚠️</span> {notebookDetectionError}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="space-y-4">
+              <button
+                onClick={handleVerifyNotebook}
+                disabled={!isCameraReady}
+                className="w-full px-6 py-3.5 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-500 hover:to-cyan-500 text-black font-semibold rounded-xl transition transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+              >
+                Verify Blank Notebook
+              </button>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => startQuiz(false)}
+                  className="flex-1 px-4 py-3 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-200 font-medium rounded-xl transition text-sm hover:scale-[1.01]"
+                >
+                  Start without Notebook
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNotebookPrompt(false);
+                    setTempQuizData(null);
+                  }}
+                  className="px-4 py-3 bg-red-950/20 hover:bg-red-900/30 border border-red-900/40 text-red-400 font-medium rounded-xl transition text-sm hover:scale-[1.01]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Landing/Input Screen
