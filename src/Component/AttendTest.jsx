@@ -39,6 +39,7 @@ export default function AttendTest() {
   const [quizStarted, setQuizStarted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [linkVal, setLinkVal] = useState('');
 
   // Restore results from sessionStorage when navigating back from certificate
   useEffect(() => {
@@ -52,6 +53,12 @@ export default function AttendTest() {
       setSubmitted(true);
       setQuizStarted(true);
     }
+
+    // Extract link from search parameters if present
+    const linkParam = new URLSearchParams(window.location.search).get('link');
+    if (linkParam) {
+      setLinkVal(linkParam);
+    }
   }, []);
   const [topUsers, setTopUsers] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -60,6 +67,7 @@ export default function AttendTest() {
   const [cheatWarnings, setCheatWarnings] = useState(0);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const videoRef = React.useRef(null);
+  const streamRef = React.useRef(null);
   const modelRef = React.useRef(null);
   const handModelRef = React.useRef(null);
   const analyserRef = React.useRef(null);
@@ -153,6 +161,7 @@ export default function AttendTest() {
           video: { width: 320, height: 240 },
           audio: !allowNoise, // Only request audio if noise detection is enabled
         });
+        streamRef.current = stream;
 
         if (!allowNoise) {
           audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -201,9 +210,17 @@ export default function AttendTest() {
 
     return () => {
       if (requestAnimationFrameId) cancelAnimationFrame(requestAnimationFrameId);
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
+      
+      // Stop media tracks
+      if (streamRef.current) {
+        const tracks = streamRef.current.getTracks();
         tracks.forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Close audio context if active
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
       }
     };
   }, [quizStarted, showNotebookPrompt, submitted, allowNoise, allowHandGestures]);
@@ -1085,6 +1102,8 @@ export default function AttendTest() {
                 <input
                   id="link"
                   type="url"
+                  value={linkVal}
+                  onChange={(e) => setLinkVal(e.target.value)}
                   placeholder="https://example.com/quiz/xyz123"
                   className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 />
