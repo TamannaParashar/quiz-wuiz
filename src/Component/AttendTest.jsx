@@ -97,9 +97,9 @@ export default function AttendTest() {
 
     setCheatWarnings(prev => {
       const next = prev + 1;
-      if (next < 5) {
+      if (next < 8) {
         setTimeout(() => {
-          alert(`Warning ${next}/5: ${reason}`);
+          alert(`Warning ${next}/8: ${reason}`);
           isAlertOpen.current = false;
           lastWarningTime.current = Date.now();
         }, 50);
@@ -111,8 +111,8 @@ export default function AttendTest() {
   };
 
   useEffect(() => {
-    if (cheatWarnings >= 5 && !submitted) {
-      alert("Your exam has been automatically submitted due to multiple cheating violations (5/5).");
+    if (cheatWarnings >= 8 && !submitted) {
+      alert("Your exam has been automatically submitted due to multiple cheating violations (8/8).");
       handleSubmit();
     }
   }, [cheatWarnings, submitted]);
