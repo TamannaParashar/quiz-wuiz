@@ -1,9 +1,11 @@
-import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/clerk-react"
-import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight, Award } from "lucide-react"
+import { SignedIn, SignedOut, SignInButton, SignOutButton, useClerk, useUser } from "@clerk/clerk-react"
+import { Brain, BookOpen, GraduationCap, Zap, Github, ChevronRight, Award, ShieldCheck } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 export default function Home() {
   const navigate = useNavigate()
+  const { openSignIn } = useClerk()
+  const { isSignedIn } = useUser()
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
@@ -21,6 +23,14 @@ export default function Home() {
             </h1>
 
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/50 transition-all duration-200 font-medium text-sm text-slate-300 hover:text-emerald-400 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Admin Login
+              </button>
+
               <SignedOut>
                 <SignInButton mode="modal">
                   <button className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 transition-all duration-200 font-medium text-sm text-white shadow-md shadow-emerald-500/10 cursor-pointer">
@@ -138,10 +148,11 @@ export default function Home() {
           <button
             onClick={() => {
               const val = document.getElementById("hero-quiz-link")?.value?.trim();
-              if (val) {
-                navigate(`/attendQuiz?link=${encodeURIComponent(val)}`);
+              const destination = val ? `/attendQuiz?link=${encodeURIComponent(val)}` : "/attendQuiz";
+              if (!isSignedIn) {
+                openSignIn({ afterSignInUrl: destination, afterSignUpUrl: destination });
               } else {
-                navigate("/attendQuiz");
+                navigate(destination);
               }
             }}
             className="w-full sm:w-auto px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 transition-colors text-white font-semibold rounded-xl text-sm whitespace-nowrap shadow-lg shadow-emerald-500/20 cursor-pointer"
