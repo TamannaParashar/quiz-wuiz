@@ -16,8 +16,26 @@ function App() {
       <Routes>
         {/* public route */}
         <Route path='/' element={<Home />}></Route>
-        <Route path='/sign-in/*' element={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><SignIn routing="path" path="/sign-in" /></div>} />
-        <Route path='/sign-up/*' element={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><SignUp routing="path" path="/sign-up" /></div>} />
+        <Route path='/sign-in/*' element={
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-12">
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px]" />
+            </div>
+            <div className="relative w-full max-w-lg">
+              <SignIn routing="path" path="/sign-in" />
+            </div>
+          </div>
+        } />
+        <Route path='/sign-up/*' element={
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-12">
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px]" />
+            </div>
+            <div className="relative w-full max-w-lg">
+              <SignUp routing="path" path="/sign-up" />
+            </div>
+          </div>
+        } />
 
         {/* private routes */}
         <Route path='/createQuiz' element={<><SignedIn><CreateQuiz /></SignedIn><SignedOut><RedirectToSignIn signInFallbackRedirectUrl="/createQuiz" /></SignedOut>

@@ -31,14 +31,18 @@ createRoot(document.getElementById('root')).render(
         elements: {
           logoBox: 'hidden',
           footer: 'hidden',
-          card: 'bg-slate-950 border border-slate-800 shadow-xl',
-          headerTitle: 'text-2xl font-bold text-white',
-          headerSubtitle: 'text-slate-400',
+          card: 'bg-slate-950 border border-slate-800 shadow-2xl shadow-black/60 w-full !max-w-lg !rounded-2xl !p-10',
+          rootBox: 'w-full flex justify-center items-center',
+          headerTitle: 'text-3xl font-bold text-white',
+          headerSubtitle: 'text-slate-400 text-base',
           dividerText: 'text-slate-500',
-          formFieldLabel: 'text-slate-300',
-          formButtonPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white font-medium',
-          socialButtonsBlockButton: 'border-slate-700 bg-slate-900 hover:bg-slate-800',
+          formFieldLabel: 'text-slate-300 text-sm font-medium',
+          formFieldInput: '!text-base !py-3',
+          formButtonPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white font-semibold !text-base !py-3 !rounded-xl',
+          socialButtonsBlockButton: 'border-slate-700 bg-slate-900 hover:bg-slate-800 !py-3',
           identityPreviewText: 'text-slate-300',
+          modalContent: 'flex items-center justify-center min-h-screen',
+          modalCloseButton: 'text-slate-400 hover:text-white',
         }
       }}
       localization={{
