@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.git
+.gitignore
+README.md
+eslint.config.js
+temp_code_exec
+*.log
+.DS_Store
