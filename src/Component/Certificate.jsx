@@ -105,14 +105,22 @@ export default function Certificate() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-2 sm:p-4 lg:p-8">
-      {/* Back button (only when opened from my-certificates) */}
-      {responseId && (
+      {/* Back button */}
+      {responseId ? (
         <button
           onClick={() => navigate("/my-certificates")}
           className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-slate-400 hover:text-white transition z-50 group print:hidden"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           My Certificates
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-slate-400 hover:text-white transition z-50 group print:hidden"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Test Results
         </button>
       )}
 
