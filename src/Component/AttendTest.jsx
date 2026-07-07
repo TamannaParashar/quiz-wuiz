@@ -14,10 +14,18 @@ export default function AttendTest() {
   const navigate = useNavigate();
   const { user } = useUser();
 
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(() => {
+    return !!sessionStorage.getItem('quizResults');
+  });
   const [warningLogs, setWarningLogs] = useState([]);
-  const [quizContent, setQuizContent] = useState([]);
-  const [quizId, setQuizId] = useState('');
+  const [quizContent, setQuizContent] = useState(() => {
+    const saved = sessionStorage.getItem('quizResults');
+    return saved ? JSON.parse(saved).savedQuizContent : [];
+  });
+  const [quizId, setQuizId] = useState(() => {
+    const saved = sessionStorage.getItem('quizResults');
+    return saved ? JSON.parse(saved).savedQuizId : '';
+  });
   const [answers, setAnswers] = useState({});
   const [codingAnswers, setCodingAnswers] = useState({}); // { index: codeString }
   const [codingLanguages, setCodingLanguages] = useState({}); // { index: selectedLanguage }
@@ -33,11 +41,18 @@ export default function AttendTest() {
     'java': "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        \n        // Read input:\n        // if (scanner.hasNextInt()) {\n        //     int n = scanner.nextInt();\n        // }\n    }\n}"
   };
 
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(() => {
+    const saved = sessionStorage.getItem('quizResults');
+    return saved ? JSON.parse(saved).savedScore : 0;
+  });
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [quizStarted, setQuizStarted] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [quizStarted, setQuizStarted] = useState(() => {
+    return !!sessionStorage.getItem('quizResults');
+  });
+  const [submitted, setSubmitted] = useState(() => {
+    return !!sessionStorage.getItem('quizResults');
+  });
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [linkVal, setLinkVal] = useState('');
 
@@ -994,7 +1009,7 @@ export default function AttendTest() {
   const percentage = quizContent.length > 0 ? Math.round((score / quizContent.length) * 100) : 0;
 
   // Verification Screen
-  if (!isVerified) {
+  if (!isVerified && !submitted) {
     return <VerificationGate onVerificationSuccess={() => setIsVerified(true)} />;
   }
 
