@@ -9,6 +9,31 @@ const VerificationGate = ({ onVerificationSuccess }) => {
     const [errorMsg, setErrorMsg] = useState('');
     const [referencePhotoUrl, setReferencePhotoUrl] = useState(null);
     const webcamRef = useRef(null);
+    const streamRef = useRef(null);
+    const [isPageVisible, setIsPageVisible] = useState(true);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setIsPageVisible(false);
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop());
+                    streamRef.current = null;
+                }
+            } else {
+                setIsPageVisible(true);
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (user?.primaryEmailAddress?.emailAddress) {
@@ -161,14 +186,23 @@ const VerificationGate = ({ onVerificationSuccess }) => {
                         Capture your face for secure identity verification during quizzes.
                     </p>
 
-                    <div className="rounded-xl overflow-hidden border border-slate-800 mb-6 bg-black">
-                        <Webcam
-                            audio={false}
-                            ref={webcamRef}
-                            screenshotFormat="image/jpeg"
-                            width={400}
-                            height={300}
-                        />
+                    <div className="rounded-xl overflow-hidden border border-slate-800 mb-6 bg-black flex items-center justify-center min-h-[300px]">
+                        {isPageVisible ? (
+                            <Webcam
+                                audio={false}
+                                ref={webcamRef}
+                                screenshotFormat="image/jpeg"
+                                width={400}
+                                height={300}
+                                onUserMedia={(stream) => {
+                                    streamRef.current = stream;
+                                }}
+                            />
+                        ) : (
+                            <div className="w-[400px] h-[300px] flex items-center justify-center text-slate-500 bg-slate-950">
+                                Camera Paused (Tab Inactive)
+                            </div>
+                        )}
                     </div>
 
                     <button
@@ -206,14 +240,23 @@ const VerificationGate = ({ onVerificationSuccess }) => {
                         Look directly at the camera to verify your identity.
                     </p>
 
-                    <div className="rounded-xl overflow-hidden border border-slate-800 mb-6 bg-black">
-                        <Webcam
-                            audio={false}
-                            ref={webcamRef}
-                            screenshotFormat="image/jpeg"
-                            width={400}
-                            height={300}
-                        />
+                    <div className="rounded-xl overflow-hidden border border-slate-800 mb-6 bg-black flex items-center justify-center min-h-[300px]">
+                        {isPageVisible ? (
+                            <Webcam
+                                audio={false}
+                                ref={webcamRef}
+                                screenshotFormat="image/jpeg"
+                                width={400}
+                                height={300}
+                                onUserMedia={(stream) => {
+                                    streamRef.current = stream;
+                                }}
+                            />
+                        ) : (
+                            <div className="w-[400px] h-[300px] flex items-center justify-center text-slate-500 bg-slate-950">
+                                Camera Paused (Tab Inactive)
+                            </div>
+                        )}
                     </div>
 
                     {errorMsg && (
