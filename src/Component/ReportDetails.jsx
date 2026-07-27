@@ -11,8 +11,13 @@ const ReportDetails = ({ report }) => {
     });
 
     const { quizDetails, answers, codingAnswers, score, warnings } = report;
-    const questions = quizDetails?.content || [];
-    const codingQuestions = quizDetails?.codingQuestions || [];
+    let questions = [];
+    if (Array.isArray(quizDetails?.content)) {
+        questions = quizDetails.content;
+    } else if (typeof quizDetails?.content === 'string') {
+        try { questions = JSON.parse(quizDetails.content); } catch (e) { questions = []; }
+    }
+    const codingQuestions = Array.isArray(quizDetails?.codingQuestions) ? quizDetails.codingQuestions : [];
     const totalQuestions = questions.length + codingQuestions.length;
 
     return (
@@ -45,7 +50,14 @@ const ReportDetails = ({ report }) => {
                     </div>
                     <div className="text-right">
                         <h2 className="text-xl font-bold text-indigo-400 print:text-gray-800">{report.topic}</h2>
-                        <p className="text-slate-400 print:text-gray-500">{new Date(report.createdAt).toLocaleString()}</p>
+                        <p className="text-slate-400 print:text-gray-500">
+                            {(() => {
+                                const rawDate = report.createdAt || report.quizDetails?.createdAt || (report._id ? new Date(parseInt(report._id.substring(0, 8), 16) * 1000) : null);
+                                if (!rawDate) return 'N/A';
+                                const d = new Date(rawDate);
+                                return isNaN(d.getTime()) ? 'N/A' : d.toLocaleString();
+                            })()}
+                        </p>
                     </div>
                 </div>
 
