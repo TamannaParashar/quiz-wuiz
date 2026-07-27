@@ -113,8 +113,8 @@ export default function CreateQuiz() {
     formData.append('time', e.target.time.value);
     formData.append('allowNoise', allowNoise);
     formData.append('allowHandGestures', allowHandGestures);
-    if (startDate) formData.append('startDate', startDate);
-    if (endDate) formData.append('endDate', endDate);
+    if (startDate) formData.append('startDate', new Date(startDate).toISOString());
+    if (endDate) formData.append('endDate', new Date(endDate).toISOString());
     if (passPercentage) formData.append('passPercentage', passPercentage);
 
     // Coding Question Data
