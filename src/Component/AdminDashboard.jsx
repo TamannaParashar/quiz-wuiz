@@ -265,13 +265,18 @@ const AdminDashboard = () => {
                                         {/* TOPIC */}
                                         <td className="px-6 py-5">
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                                                {report.topic}
+                                                {report.topic && report.topic !== 'Unknown Topic' ? report.topic : (report.quizDetails?.topic || 'Unknown Topic')}
                                             </span>
                                         </td>
 
                                         {/* DATE */}
                                         <td className="px-6 py-5 text-sm text-slate-400">
-                                            {new Date(report.createdAt).toLocaleDateString()}
+                                            {(() => {
+                                                const rawDate = report.createdAt || report.quizDetails?.createdAt || (report._id ? new Date(parseInt(report._id.substring(0, 8), 16) * 1000) : null);
+                                                if (!rawDate) return 'N/A';
+                                                const d = new Date(rawDate);
+                                                return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
+                                            })()}
                                         </td>
 
                                         {/* SCORE */}
@@ -279,7 +284,15 @@ const AdminDashboard = () => {
                                             {report.score}
                                             {report.quizDetails && (
                                                 <span className="text-slate-500 text-sm ml-1">
-                                                    / {(report.quizDetails.content?.length || 0) + (report.quizDetails.codingQuestions?.length || 0)}
+                                                    / {(() => {
+                                                        let mcqCount = 0;
+                                                        if (Array.isArray(report.quizDetails.content)) mcqCount = report.quizDetails.content.length;
+                                                        else if (typeof report.quizDetails.content === 'string') {
+                                                            try { mcqCount = JSON.parse(report.quizDetails.content).length; } catch(e) {}
+                                                        }
+                                                        let codingCount = Array.isArray(report.quizDetails.codingQuestions) ? report.quizDetails.codingQuestions.length : 0;
+                                                        return mcqCount + codingCount;
+                                                    })()}
                                                 </span>
                                             )}
                                         </td>
